@@ -1,0 +1,15 @@
+<!-- 「ugm_page」 -->
+<{php}>
+ if(file_exists(XOOPS_ROOT_PATH."/modules/ugm_page/var.php")){
+    global $xoopsDB;
+    $sql = "select `sn`,`var_value`  from ".$xoopsDB->prefix("ugm_page_var")." where `enable`='1' ";
+	  $result = $xoopsDB->query($sql) ;
+  	while($all=$xoopsDB->fetchArray($result)){
+
+      foreach($all as $k=>$v){
+            $$k=$v;//產生$sn,$var_value
+      }
+      $this->assign("ugm_page_{$sn}",$var_value);
+    }
+  }
+<{/php}>

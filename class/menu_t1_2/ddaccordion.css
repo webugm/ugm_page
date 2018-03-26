@@ -1,0 +1,68 @@
+.ugm_page_menu_t1_2{
+	width: 100%; /*width of menu*/
+	border-style: none;
+	border-color: #94AA74;
+	border-size: 1px;
+	border-width: 1px;
+}
+	
+.ugm_page_menu_t1_2 div a{ /*header bar links*/
+	color: #424242;
+	display: block;
+	line-height: 200%;
+	font-size: 110%;
+	border-bottom: 1px solid #DCDCDC !important;
+	padding:              8px 0px 5px 12px !important;
+	height: 30px;
+	overflow: hidden;
+	background: url(buttom03.png) no-repeat 196px 16px;
+}
+	
+.ugm_page_menu_t1_2 div a:link, .ugm_page_menu_t1_2 div a:visited{
+	color: #26370A;
+}
+
+.ugm_page_menu_t1_2 div a:hover{
+	background: url(buttom01.png) no-repeat left 7px;
+	color: #FFFFFF;
+}
+
+.ugm_page_menu_t1_2 div.unselected a{ /*header that's currently not selected*/
+	color: #26370A;
+}
+
+.ugm_page_menu_t1_2 div.unselected a:hover{ /*header that's currently not selected*/
+	color: #FFFFFF;
+}
+	
+.ugm_page_menu_t1_2 div.selected a{ /*header that's currently selected*/
+	background: url(buttom02.png) no-repeat left 7px;
+	color: #FFFFFF;
+}
+
+.ugm_page_menu_t1_2 ul{
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+.ugm_page_menu_t1_2 ul li{
+	_height: 25px;
+}
+
+
+.ugm_page_menu_t1_2 ul li a{ /*次選單*/
+	line-height: 250%;
+	display: block;
+	margin-left:  2px;
+	padding: 0;
+	border-bottom: 1px solid #DCDCDC !important;
+	background: url(Skee_67.png) no-repeat 2px 15px;
+	padding:              0 0 0 10px !important;
+	color: #5E5E5E;
+}
+
+.ugm_page_menu_t1_2 ul li a:hover{
+	background: url(Skee_67.png) no-repeat 3px 15px;
+	color: #0073AC;
+}

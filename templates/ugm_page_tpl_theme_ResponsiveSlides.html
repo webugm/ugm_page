@@ -1,0 +1,90 @@
+<!--取得圖片輪播 -->
+<{php}>
+  global $xoopsDB,$xoopsTpl;
+  #判斷程式是否存在
+  //include_once XOOPS_ROOT_PATH."/modules/ugm_page/blocks/ugm_page_coin_slider_pic.php";
+  #-----------------------------------------------------------------------
+  # 取得輪播圖片的第1個類別
+  $sql = "select `menu_sn`  from ".$xoopsDB->prefix("ugm_page_menu")." where `menu_enable`=1 and `menu_type`=2 and `menu_ofsn`=0 order by `menu_sort` limit 1";//die($sql);
+  $result = $xoopsDB->query($sql) or redirect_header($_SERVER['PHP_SELF'],3, web_error());
+  list($menu_sn)=$xoopsDB->fetchRow($result);
+  #有圖片輪播資料
+  if($menu_sn){
+    # 秀出圖片輪播的程式
+    $main= ugm_page_tpl_theme_ResponsiveSlides($menu_sn);
+    //print_r($main);die();
+    $xoopsTpl->assign('ugm_page_ResponsiveSlides',$main);
+  }
+################################################################################
+#  1. 整合至佈景的區塊
+#  2. 取用第1個圖片輪播
+#
+#
+#
+################################################################################
+function ugm_page_tpl_theme_ResponsiveSlides($menu_sn_chk){
+  global $xoopsDB,$xoopsTpl;
+  $sql = "select *
+          from ".$xoopsDB->prefix("ugm_page_menu")."
+          where `menu_enable`=1 and `menu_ofsn`='{$menu_sn_chk}'order by `menu_sort` desc";//die($sql);
+	$result = $xoopsDB->query($sql) or redirect_header($_SERVER['PHP_SELF'],3, web_error());
+  $total=$xoopsDB->getRowsNum($result); #記錄筆數
+  if($total==0)return; 
+  while($all=$xoopsDB->fetchArray($result)){
+	  //以下會產生這些變數： `menu_sn`, `menu_type`, `menu_ofsn`, `menu_sort`, `menu_title`, `menu_op`, `menu_tip`, `menu_enable`, `menu_new`, `menu_url`, `menu_date`, `menu_uid`
+    foreach($all as $k=>$v){
+      $$k=$v;
+    }
+    $sql_1 = "select `file_name`,`description`  from ".$xoopsDB->prefix("ugm_page_files_center")." where `col_sn`='{$menu_sn}' and `col_name`='slider_link_pic'";
+
+	  $result_1 = $xoopsDB->query($sql_1) or redirect_header($_SERVER['PHP_SELF'],3, web_error());
+    list($file_name,$description)=$xoopsDB->fetchRow($result_1); 
+    if(!empty($file_name)){
+      $main['li'][$menu_sn]['target']=$menu_new?" target='_blank'":"";
+      $main['li'][$menu_sn]['menu_title']=$menu_title;
+      $main['li'][$menu_sn]['file_name']=XOOPS_URL."/uploads/ugm_page/image/$file_name";
+      $main['li'][$menu_sn]['description']=$description;
+      $main['li'][$menu_sn]['menu_url']=$menu_url;
+    }
+  }
+	return $main;
+}
+<{/php}>
+
+<link rel="stylesheet" href="<{$xoops_url}>/modules/ugm_page/class/ResponsiveSlides/responsiveslides.css">
+<link rel='stylesheet' href="<{$xoops_url}>/modules/ugm_page/class/ResponsiveSlides/demo.css" />
+<script type='text/javascript'>
+  if(typeof jQuery == 'undefined') {
+    document.write("<script type='text/javascript' src='<{$xoops_url}>/modules/tadtools/jquery/jquery.js'><\/script>");
+  }
+</script>
+<script src="<{$xoops_url}>/modules/ugm_page/class/ResponsiveSlides/responsiveslides.js"></script>
+<script>
+  // You can also use "$(window).load(function() {"
+  $(function () {
+    // Slideshow 4
+    $("#ugm_page_ResponsiveSlides").responsiveSlides({
+      auto: true,             //自動播放
+      pager: false,           //請不要改變
+      nav: true,              //左右導航
+      speed: 1000,             //轉場速度
+      pause: true,
+      pauseControls: true,
+      namespace: "callbacks"  //文字說明
+      });
+    });
+</script>
+    <div class="callbacks_container">
+      <ul class="rslides" id="ugm_page_ResponsiveSlides">
+         <{foreach from=$ugm_page_ResponsiveSlides.li item=pic key=menu_sn}>
+           <li>
+             <a href="<{$pic.menu_url}>" <{$pic.target}>>
+               <img src="<{$pic.file_name}>" alt="<{$pic.menu_title}>">
+               <{if $pic.description}>
+               <p class="caption"><{$pic.description}></p>
+               <{/if}>
+             </a>
+           </li>
+         <{/foreach}> 
+      </ul>
+    </div>

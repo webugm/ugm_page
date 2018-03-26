@@ -1,0 +1,30 @@
+<!--上方選單 menu_ofsn limit 3,1-->
+<{php}>
+  global $xoopsDB;
+  $sql = "select `menu_sn`  from ".$xoopsDB->prefix("ugm_page_menu")." where `menu_type`='5' and `menu_enable`='1' and `menu_ofsn`='0' order by `menu_sort` limit 3,1 ";
+	$result = $xoopsDB->query($sql) or redirect_header($_SERVER['PHP_SELF'],3, "");//web_error()
+  list($menu_sn)=$xoopsDB->fetchRow($result);
+  
+ 
+  if($menu_sn){
+    $sql = "select `menu_title`,`menu_new`,`menu_url`  from ".$xoopsDB->prefix("ugm_page_menu")." where `menu_type`='5' and `menu_enable`='1' and `menu_ofsn`='{$menu_sn}' order by `menu_sort` ";
+	  $result = $xoopsDB->query($sql) or redirect_header($_SERVER['PHP_SELF'],3, "");//web_error()
+    $main="";$i=0;
+    while($all=$xoopsDB->fetchArray($result) ){
+      //以下會產生這些變數： 【$menu_title,$menu_new,$menu_url】
+      foreach($all as $k=>$v){
+          $$k=$v;
+      }
+        if($i==0)$main="<ul id='navmenu'>";
+        $menu_url=empty($menu_url)?"#":$menu_url;
+        $target=$menu_new?" target='_blank'":"";
+        $main.="<li><a href='{$menu_url}' title='{$menu_title}' {$target}>{$menu_title}</a></li>";
+        $i++;
+    }
+     if($main){
+       $main.="</ul>";
+       echo $main;
+     }  
+  }   
+<{/php}>
+<!--左方橘色選單-->

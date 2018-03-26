@@ -1,0 +1,19 @@
+<!--圖片輪播 -->
+  <{php}>
+    global $xoopsDB;
+    #判斷程式是否存在
+    if(file_exists(XOOPS_ROOT_PATH."/modules/ugm_page/blocks/ugm_page_coin_slider_pic.php")){
+      include_once XOOPS_ROOT_PATH."/modules/ugm_page/blocks/ugm_page_coin_slider_pic.php";  
+      #-----------------------------------------------------------------------     
+      # 取得輪播圖片的第1個類別  
+      $sql = "select `menu_sn`  from ".$xoopsDB->prefix("ugm_page_menu")." where `menu_enable`=1 and `menu_type`=2 and `menu_ofsn`=0 order by `menu_sort` limit 1";
+      $result = $xoopsDB->query($sql) or redirect_header($_SERVER['PHP_SELF'],3, web_error());
+      list($menu_sn)=$xoopsDB->fetchRow($result);
+      #有圖片輪播資料
+      if($menu_sn){       
+        # 秀出圖片輪播的程式
+        echo ugm_page_coin_slider_pic_themes($menu_sn);
+      }
+    }
+   <{/php}>
+<!--圖片輪播 end-->

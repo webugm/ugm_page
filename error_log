@@ -1,0 +1,10 @@
+[11-Apr-2012 04:11:29] PHP Parse error:  syntax error, unexpected $end in /home2/owlwoman/public_html/demowebugm/modules/ugm_page/post.php on line 271
+[12-Apr-2012 00:20:06] PHP Parse error:  syntax error, unexpected T_ENCAPSED_AND_WHITESPACE, expecting T_STRING or T_VARIABLE or T_NUM_STRING in /home2/owlwoman/public_html/demowebugm/modules/ugm_page/post.php on line 370
+[12-Apr-2012 00:20:12] PHP Parse error:  syntax error, unexpected T_ENCAPSED_AND_WHITESPACE, expecting T_STRING or T_VARIABLE or T_NUM_STRING in /home2/owlwoman/public_html/demowebugm/modules/ugm_page/post.php on line 370
+[12-Apr-2012 00:32:13] PHP Parse error:  syntax error, unexpected ';' in /home2/owlwoman/public_html/demowebugm/modules/ugm_page/post.php on line 295
+[12-Apr-2012 00:44:48] PHP Parse error:  syntax error, unexpected ';' in /home2/owlwoman/public_html/demowebugm/modules/ugm_page/post.php on line 296
+[12-Apr-2012 01:21:36] PHP Parse error:  syntax error, unexpected $end, expecting '(' in /home2/owlwoman/public_html/demowebugm/modules/ugm_page/post.php on line 110
+[12-Apr-2012 21:42:12] PHP Parse error:  syntax error, unexpected ')', expecting ']' in /home2/owlwoman/public_html/demowebugm/modules/ugm_page/blocks/ugm_page_b_cate.php on line 79
+[12-Apr-2012 21:43:14] PHP Parse error:  syntax error, unexpected ')', expecting ']' in /home2/owlwoman/public_html/demowebugm/modules/ugm_page/blocks/ugm_page_b_cate.php on line 79
+[13-Apr-2012 00:40:13] PHP Parse error:  syntax error, unexpected '}', expecting T_VARIABLE or '$' in /home2/owlwoman/public_html/demowebugm/modules/ugm_page/header.php on line 26
+[30-Sep-2012 10:32:54] PHP Parse error:  syntax error, unexpected $end in /home2/owlwoman/public_html/demowebugm/modules/ugm_page/menu.php on line 273

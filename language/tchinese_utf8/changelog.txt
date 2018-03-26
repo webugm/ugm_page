@@ -1,0 +1,10 @@
+ugm_page 2.41 測試版功能項目（2014-05-27 釋出）
+================================================= 
+1.修正與tadtools 2.42函數衝突
+
+Version 2.3 2014-02-01:
+=================================
+增加bootstrap 佈景使用下拉選單(僅讀取第1個下拉選單)
+在佈景檔寫入下列語法
+<{includeq file="$xoops_rootpath/modules/ugm_page/templates/ugm_page_tpl_theme_menu.html"}>
+
