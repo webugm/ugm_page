@@ -3,7 +3,7 @@ $modversion = array();
 
 //---模組基本資訊---//
 $modversion['name'] = _MI_UGMPAGE_NAME;
-$modversion['version'] = 3.0;
+$modversion['version'] = '3.00';
 $modversion['description'] = _MI_UGMPAGE_DESC;
 $modversion['author'] = _MI_UGMPAGE_AUTHOR;
 $modversion['credits'] = _MI_UGMPAGE_CREDITS;
