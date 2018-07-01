@@ -77,17 +77,6 @@ include_once XOOPS_ROOT_PATH . '/footer.php';
 
 
 /*-----------function區--------------*/
-//模組頁尾
-function module_footer1($main=""){
-  global $xoopsTpl,$module_css,$module_menu;
-  include XOOPS_ROOT_PATH."/header.php";
-  $xoopsTpl->assign( "css" , $module_css) ;
-  $xoopsTpl->assign( "toolbar" , $module_menu) ;
-  $xoopsTpl->assign( "content" , $main) ;
-  include_once XOOPS_ROOT_PATH.'/footer.php';
-}
-
-
 #######################################################################################
 //刪除u_menu某筆資料資料
 function op_delete($menu_sn=""){
