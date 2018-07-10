@@ -107,6 +107,7 @@ define("_MD_UGMPAGE_MENU_T2_TITLE","圖片輪播");
 define("_MD_UGMPAGE_MENU_T3_TITLE","跑馬燈");
 define("_MD_UGMPAGE_MENU_T4_TITLE","下拉選單");
 define("_MD_UGMPAGE_MENU_T5_TITLE","單層選單");
+define("_MD_UGMPAGE_MENU_T6_TITLE","樹狀選單");
 define("_MD_UGMPAGE_MENU_FORM","表單");
 // ----------- 變數管理 ---------------------------------------------
 

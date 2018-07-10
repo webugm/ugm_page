@@ -89,6 +89,3 @@ if(!function_exists('chk2')){
   }
 }
 
-
-
-?>

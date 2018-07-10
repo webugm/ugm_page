@@ -3,7 +3,7 @@ $modversion = array();
 
 //---模組基本資訊---//
 $modversion['name'] = _MI_UGMPAGE_NAME;
-$modversion['version'] = '3.00';
+$modversion['version'] = '3.01';
 $modversion['description'] = _MI_UGMPAGE_DESC;
 $modversion['author'] = _MI_UGMPAGE_AUTHOR;
 $modversion['credits'] = _MI_UGMPAGE_CREDITS;
@@ -15,8 +15,8 @@ $modversion['dirname'] = basename(dirname(__FILE__));
 
 
 //---模組狀態資訊---//
-$modversion['status_version'] = '3.0';
-$modversion['release_date'] = '2014-05-27';
+$modversion['status_version'] = '3.01';
+$modversion['release_date'] = '2018-07-05';
 $modversion['module_website_url'] = 'http://www.ugm.com.tw/';
 $modversion['module_website_name'] = 'UGM';
 $modversion['module_status'] = 'release';
@@ -301,6 +301,14 @@ $modversion['blocks'][10]['template'] = "ugm_page_b_menu_t1_accordion.html";
 $modversion['blocks'][10]['edit_func'] = "ugm_page_b_menu_t1_accordion_edit";
 $modversion['blocks'][10]['options'] = "|";
 
+#樹狀選單
+$modversion['blocks'][11]['file'] = "ugm_page_b_tree_menu.php";
+$modversion['blocks'][11]['name'] = _MI_UGMPAGE_BNAME11;
+$modversion['blocks'][11]['description'] = _MI_UGMPAGE_BDESC11;
+$modversion['blocks'][11]['show_func'] = "ugm_page_b_tree_menu";
+$modversion['blocks'][11]['template'] = "ugm_page_b_tree_menu.tpl";
+$modversion['blocks'][11]['edit_func'] = "ugm_page_b_tree_menu_edit";
+$modversion['blocks'][11]['options'] = "|";
 
 //---樣板設定---//
 $modversion['templates'] = array();

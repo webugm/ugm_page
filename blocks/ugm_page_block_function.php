@@ -70,7 +70,3 @@ if(!function_exists('chk2')){
   	return "";
   }
 }
-
-
-
-?>

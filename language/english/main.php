@@ -97,4 +97,5 @@ define("_MD_UGMPAGE_MENU_T2_TITLE","Image carousel");
 define("_MD_UGMPAGE_MENU_T3_TITLE","Marquee");
 define("_MD_UGMPAGE_MENU_T4_TITLE","Drop-down menu");
 define("_MD_UGMPAGE_MENU_T5_TITLE","Single menu");
+define("_MD_UGMPAGE_MENU_T6_TITLE","Tree menu");
 define("_MD_UGMPAGE_MENU_FORM","FORM");

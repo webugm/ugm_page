@@ -94,7 +94,7 @@ function upload_file($upfile='upfile',$col_name="",$col_sn="",$files_sn="",$sort
 			}
       $files[$i][$k] = $v;
     }
-  }
+	}
   
   foreach ($files as $file) {
     if(empty($file['name']))continue;
@@ -390,4 +390,3 @@ function get_one_description($col_name="",$col_sn=""){
   foreach($files as $files_sn => $pic)
   return $pic['description'];
 }
-?>

@@ -62,6 +62,8 @@ define("_MI_UGMPAGE_SMOOTHMENU_BDESC","下拉選單(ugm_page_smoothmenu)");
 define("_MI_UGMPAGE_BNAME10","伸縮選單(bootstrap)");
 define("_MI_UGMPAGE_BDESC10","伸縮選單(bootstrap)");
 
+define("_MI_UGMPAGE_BNAME11","樹狀選單");
+define("_MI_UGMPAGE_BDESC11","樹狀選單");
 //-------------------偏好設定--------------------------------------------
 define("_MI_UGMPAGE_TITLE1","<b>相關文章分頁數量？</b>");
 define("_MI_UGMPAGE_DESC1","模組首頁下方，相關文章的分頁數量，「0」不要出現、10為10篇一頁，預設為「10」");

@@ -3,7 +3,7 @@
 #   佈景管理器 index.php
 #   版權：育將電腦工作室
 #   日期：2011-09-28
-#   1->伸縮選單 2->圖片輪撥 3->跑馬燈 4->下拉選單
+#   1->伸縮選單 2->圖片輪撥 3->跑馬燈 4->下拉選單 ，5->單層選單 ,6->樹狀選單
 #
 ################################################################################
 /*-----------引入檔案區--------------*/
@@ -74,10 +74,25 @@ $xoopsTpl->assign( "content" , $main) ;
 $xoopsTpl->assign( "isAdmin" , $isAdmin) ;//interface_menu.php
 $xoopsTpl->assign( "op" , $op) ;
 include_once XOOPS_ROOT_PATH . '/footer.php';
-
-
 /*-----------function區--------------*/
-#######################################################################################
+#非第一層選單
+function ofsnTrueForm($menu_tip,$menu_url,$menu_new){
+  $main ="
+    <tr><th>"._MD_UGMPAGE_MENU_TIP."</th>
+        <td><label for='menu_tip'></label><input type='text' name='menu_tip' size='40' value='{$menu_tip}' id='menu_tip'></td>
+    </tr>
+    <tr><th>"._MD_UGMPAGE_MENU_URL."</th>
+        <td><label for='menu_url'></label><input type='text' name='menu_url' size='40' value='{$menu_url}' id='menu_url'></td>
+    </tr>
+    <tr><th>"._MD_UGMPAGE_MENU_NEW."</th>
+        <td><input type='radio' name='menu_new' id='menu_new_1' value='1' ".chk($menu_new,'1')."><label for='menu_new_1'>"._YES."</label>
+            <input type='radio' name='menu_new' id='menu_new_0' value='0' ".chk($menu_new,'0')."><span><label for='menu_new_0'>"._NO."</label></span>
+        </td>
+    </tr>
+  ";
+  return $main;
+}
+##############################################
 //刪除u_menu某筆資料資料
 function op_delete($menu_sn=""){
 	global $xoopsDB,$xoopsModule;
@@ -102,9 +117,6 @@ function cdk_sub_level($menu_sn=0){
 }
 ###############################################################################
 #  更新啟用
-#
-#
-#
 ###############################################################################
 function op_update_enable($menu_sn=0){
   global $xoopsDB,$xoopsUser;
@@ -130,366 +142,107 @@ function get_max_menu_sort($menu_type=0,$menu_ofsn=0){
 ################################################################################
 #   表單
 #   //ugm_form
-#
-#
-#
 ################################################################################
 function op_form($menu_type=0,$menu_ofsn=0,$menu_sn=0){
   global $xoopsModule,$xoopsDB,$xoopsConfig;
   $DIRNAME=$xoopsModule->getVar('dirname');
   //$main.=ugm_style_css();
 
-  //---------------------  驗証 (會自已引入jquery)   ------------------------------------------------
+  
+  if($menu_type==1){
+    $main_title=_MD_UGMPAGE_MENU_T1_TITLE;
+  }elseif($menu_type==2){
+    $main_title=_MD_UGMPAGE_MENU_T2_TITLE;
+  }elseif($menu_type==3){
+    $main_title=_MD_UGMPAGE_MENU_T3_TITLE;
+  }elseif($menu_type==4){
+    $main_title=_MD_UGMPAGE_MENU_T4_TITLE;
+  }elseif($menu_type==5){
+    $main_title=_MD_UGMPAGE_MENU_T5_TITLE;
+  }elseif($menu_type==6){
+    $main_title=_MD_UGMPAGE_MENU_T6_TITLE;
+  }
+
+  //抓取預設值
+  if(!$menu_sn==0){
+    //編輯
+    $DBV=get_sn_one("select * from ".$xoopsDB->prefix(_DB_MENU_TABLE)." where menu_sn='$menu_sn'");
+  }else{
+    $DBV=array();
+  }
+  //預設值設定
+  $menu_title    =(!isset($DBV['menu_title']))   ?"":$DBV['menu_title'];     //標題
+  $menu_enable   =(!isset($DBV['menu_enable']))  ?"1":$DBV['menu_enable'];   //顯示
+  $menu_new      =(!isset($DBV['menu_new']))     ?"0":$DBV['menu_new'];      //開新視窗
+  $menu_url      =(!isset($DBV['menu_url']))     ?"":$DBV['menu_url'];;      //網址
+  $menu_sort    =(!isset($DBV['menu_sort']))     ?get_max_menu_sort($menu_type,$menu_ofsn):$DBV['menu_sort'];
+  $menu_tip      =(!isset($DBV['menu_tip']))     ?"":$DBV['menu_tip'];
+  //==================================================================
+  
+  $ofsnTrueForm=$menu_type2_upload_file="";//非第一層標題
+  if($menu_ofsn!=0){
+    $ofsnTrueForm=ofsnTrueForm($menu_tip,$menu_url,$menu_new);
+  }else{
+    $main_title .= "<span>(本層是類別)</span>";
+  }
+  if($menu_type==2){    
+    # 處理滑動圖片
+    $slider_link_pic=get_one_pic("slider_link_pic",$menu_sn,"small");
+    //$slider_link_pic=(empty($slider_link_pic))?"":"<tr><td colspan=2>{$slider_link_pic}</td></tr>";
+    $slider_link_txt=get_one_description("slider_link_pic",$menu_sn);
+    //多檔上傳圖片與摘要說明(存在ugm_page_files_center->description)    
+    $menu_type2_upload_file="
+      <tr><th>"._MD_UGMPAGE_SLIDER."</th>
+          <td><input type='file' name='slider_link_pic[]' maxlength='2' accept='gif|jpg|png' ><br>{$slider_link_pic}</td>
+      </tr>
+
+      <tr><th>"._MD_UGMPAGE_SLIDER_TXT."</th>
+          <td><textarea name='slider_link_txt' style='width:550px;height:80px;font-size:12px;'>$slider_link_txt</textarea></td>
+      </tr>
+    ";
+  }
+  $main.="
+    <form action='{$_SERVER['PHP_SELF']}' method='post' id='{$DIRNAME}_Form' class='form-inline' enctype='multipart/form-data'>
+      <table id='form_table' class='table table-bordered table-condensed table-hover'>
+        <tr><th colspan='2'>{$main_title}</th></tr>
+        <tr><th style='width:120px;'>"._MD_UGMPAGE_TITLE."</th>
+          <td><label for='menu_title'></label><input type='text' name='menu_title' size='40' value='{$menu_title}' id='menu_title' class='validate[required]'></td>
+          {$ofsnTrueForm}
+        <tr><th>"._MD_UGMPAGE_CATE_ENABLE."</th>
+            <td><input type='radio' name='menu_enable' id='menu_enable_1' value='1' ".chk($menu_enable,'1')."><label for='menu_enable_1'>"._YES."</label>
+                <input type='radio' name='menu_enable' id='menu_enable_0' value='0' ".chk($menu_enable,'0')."><span><label for='menu_enable_0'>"._NO."</label></span>
+            </td>
+        </tr>
+        <tr><th>"._MD_UGMPAGE_CATE_SORT."</th>
+            <td><label for='menu_sort'></label><input type='text' name='menu_sort' size='10' value='{$menu_sort}' id='menu_sort'></td>
+        </tr>
+        {$menu_type2_upload_file}
+        <tr><th colspan='2'>
+          <input type='hidden' name='menu_sn' value='{$menu_sn}'>
+          <input type='hidden' name='menu_type' value='{$menu_type}'>
+          <input type='hidden' name='menu_ofsn' value='{$menu_ofsn}'>
+          <input type='hidden' name='op' value='op_insert'>
+          <input type='submit' name='submit' value='"._MD_SAVE."'>
+          </th></tr>
+      </table>
+    </form>
+  ";
+
+  
+  //---- 驗証 (會自已引入jquery)   -------------------
 	if(!file_exists(TADTOOLS_PATH."/formValidator.php")){
-   redirect_header("index.php",3, _MD_NEED_TADTOOLS);
+    redirect_header("index.php",3, _MD_NEED_TADTOOLS);
   }
   include_once TADTOOLS_PATH."/formValidator.php";
   $formValidator= new formValidator("#{$DIRNAME}_Form",true);
-  $formValidator_code=$formValidator->render();
-  //------------------------ enctype='multipart/form-data' ----------------------------------------------------
-  switch($menu_type){
-  case "5": //單層選單(2層)第一層是類別
-  case "1": //伸縮選單(3層)第一層是類別
-  	//抓取預設值
-  	if(!$menu_sn==0){
-			//編輯
-			$DBV=get_sn_one("select * from ".$xoopsDB->prefix(_DB_MENU_TABLE)." where menu_sn='$menu_sn'");
-  	}else{
-  		$DBV=array();
-  	}
-	  //預設值設定
-  	$menu_title    =(!isset($DBV['menu_title']))   ?"":$DBV['menu_title'];     //標題
-  	$menu_enable   =(!isset($DBV['menu_enable']))  ?"1":$DBV['menu_enable'];   //顯示
-  	$menu_new      =(!isset($DBV['menu_new']))     ?"0":$DBV['menu_new'];      //開新視窗
-  	$menu_url      =(!isset($DBV['menu_url']))     ?"":$DBV['menu_url'];;      //網址
-  	$menu_sort    =(!isset($DBV['menu_sort']))     ?get_max_menu_sort($menu_type,$menu_ofsn):$DBV['menu_sort'];
-  	$menu_tip      =(!isset($DBV['menu_tip']))     ?"":$DBV['menu_tip'];
-    //=========================================================================
-    $menu_ofsn_0_form="";
-    if($menu_ofsn!=0){
-      $menu_ofsn_0_form="
-        <tr><th>"._MD_UGMPAGE_MENU_TIP."</th>
-      	    <td><label for='menu_tip'></label><input type='text' name='menu_tip' size='40' value='{$menu_tip}' id='menu_tip'></td>
-        </tr>
-        <tr><th>"._MD_UGMPAGE_MENU_URL."</th>
-      	    <td><label for='menu_url'></label><input type='text' name='menu_url' size='40' value='{$menu_url}' id='menu_url'></td>
-        </tr>
-        <tr><th>"._MD_UGMPAGE_MENU_NEW."</th>
-      	    <td><input type='radio' name='menu_new' id='menu_new_1' value='1' ".chk($menu_new,'1')."><label for='menu_new_1'>"._YES."</label>
-                <input type='radio' name='menu_new' id='menu_new_0' value='0' ".chk($menu_new,'0')."><span><label for='menu_new_0'>"._NO."</label></span>
-            </td>
-        </tr>
-      ";
-    }
-    $main.="{$formValidator_code}
-      <form action='{$_SERVER['PHP_SELF']}' method='post' id='{$DIRNAME}_Form' class='form-inline' class='form-inline'>
-  	    <table id='form_table' class='table table-bordered table-condensed table-hover'>
-   	      <tr><th colspan='2'>"._MD_UGMPAGE_MENU_T1_TITLE."</th></tr>
-          <tr><th style='width:120px;'>"._MD_UGMPAGE_TITLE."</th>
-      	    <td><label for='menu_title'></label><input type='text' name='menu_title' size='40' value='{$menu_title}' id='menu_title' class='validate[required]'></td>
-      	  {$menu_ofsn_0_form}
-          <tr><th>"._MD_UGMPAGE_CATE_ENABLE."</th>
-      	      <td><input type='radio' name='menu_enable' id='menu_enable_1' value='1' ".chk($menu_enable,'1')."><label for='menu_enable_1'>"._YES."</label>
-                  <input type='radio' name='menu_enable' id='menu_enable_0' value='0' ".chk($menu_enable,'0')."><span><label for='menu_enable_0'>"._NO."</label></span>
-              </td>
-          </tr>
-          <tr><th>"._MD_UGMPAGE_CATE_SORT."</th>
-      	      <td><label for='menu_sort'></label><input type='text' name='menu_sort' size='10' value='{$menu_sort}' id='menu_sort'></td>
-          </tr>
-    	    <tr><th colspan='2'>
-    	      <input type='hidden' name='menu_sn' value='{$menu_sn}'>
-    	      <input type='hidden' name='menu_type' value='{$menu_type}'>
-    	      <input type='hidden' name='menu_ofsn' value='{$menu_ofsn}'>
-          	<input type='hidden' name='op' value='op_insert'>
-            <input type='submit' name='submit' value='"._MD_SAVE."'>
-            </th></tr>
-    	 </table>
-    </form>
-  ";
-  if($menu_type==1){
-    $main_title=_MD_UGMPAGE_MENU_T1_TITLE;
-  }elseif($menu_type==5){
-    $main_title=_MD_UGMPAGE_MENU_T5_TITLE;
-  }
-  //$main=ugm_div($main_title,$main);
-  break;
+  $formValidator->render();
+  //----  -------------
 
-  //============================================================================
-  case "2": //圖片輪撥(2層)第一層是類別
-
-    //---------------------  多檔上傳 ----------------------------------------------
-  	$multiple_file_upload_code="<script src='".XOOPS_URL."/modules/tadtools/multiple-file-upload/jquery.MultiFile.js'></script>";
-  	//--------------------------------------------------------------------------------
-    //抓取預設值
-    $slider_link_pic="";
-	  $slider_link_txt="";
-  	if(!$menu_sn==0){
-			//編輯
-			$DBV=get_sn_one("select * from ".$xoopsDB->prefix(_DB_MENU_TABLE)." where menu_sn='$menu_sn'");
-			# 處理滑動圖片
-  		$slider_link_pic=get_one_pic("slider_link_pic",$menu_sn,"small");
-  		//$slider_link_pic=(empty($slider_link_pic))?"":"<tr><td colspan=2>{$slider_link_pic}</td></tr>";
-  		$slider_link_txt=get_one_description("slider_link_pic",$menu_sn,"small");
-
-
-  	}else{
-  		$DBV=array();
-  	}
-	  //預設值設定
-  	$menu_title    =(!isset($DBV['menu_title']))   ?"":$DBV['menu_title'];     //標題
-  	$menu_enable   =(!isset($DBV['menu_enable']))  ?"1":$DBV['menu_enable'];   //顯示
-  	$menu_new      =(!isset($DBV['menu_new']))     ?"0":$DBV['menu_new'];      //開新視窗
-  	$menu_url      =(!isset($DBV['menu_url']))     ?"":$DBV['menu_url'];;      //網址
-  	$menu_sort    =(!isset($DBV['menu_sort']))     ?get_max_menu_sort($menu_type,$menu_ofsn):$DBV['menu_sort'];
-  	$menu_tip      =(!isset($DBV['menu_tip']))     ?"":$DBV['menu_tip'];
-    //=========================================================================
-    $menu_ofsn_0_form=$menu_type2_upload_file="";
-    if($menu_ofsn!=0){
-      $menu_ofsn_0_form="
-        <tr><th>"._MD_UGMPAGE_MENU_TIP."</th>
-      	    <td><label for='menu_tip'></label><input type='text' name='menu_tip' size='40' value='{$menu_tip}' id='menu_tip'></td>
-        </tr>
-        <tr><th>"._MD_UGMPAGE_MENU_URL."</th>
-      	    <td><label for='menu_url'></label><input type='text' name='menu_url' size='40' value='{$menu_url}' id='menu_url'></td>
-        </tr>
-        <tr><th>"._MD_UGMPAGE_MENU_NEW."</th>
-      	    <td><input type='radio' name='menu_new' id='menu_new_1' value='1' ".chk($menu_new,'1')."><label for='menu_new_1'>"._YES."</label>
-                <input type='radio' name='menu_new' id='menu_new_0' value='0' ".chk($menu_new,'0')."><span><label for='menu_new_0'>"._NO."</label></span>
-            </td>
-        </tr>
-      ";
-
-
-     $menu_type2_upload_file="
-           <tr><th>"._MD_UGMPAGE_SLIDER."</th>
-               <td><input type='file' name='slider_link_pic[]' maxlength='2' accept='gif|jpg|png' ><br>{$slider_link_pic}</td>
-           </tr>
-
-           <tr><th>"._MD_UGMPAGE_SLIDER_TXT."</th>
-               <td><textarea name='slider_link_txt' style='width:550px;height:80px;font-size:12px;'>$slider_link_txt</textarea></td>
-           </tr>
-     ";
-
-    }
-    $main.="{$formValidator_code}{$multiple_file_upload_code}
-      <form action='{$_SERVER['PHP_SELF']}' method='post' id='{$DIRNAME}_Form' enctype='multipart/form-data' class='form-inline'>
-  	    <table  id='form_table' class='table table-bordered table-condensed table-hover'>
-   	      <tr><th colspan='2'>"._MD_UGMPAGE_MENU_T2_TITLE._MD_UGMPAGE_MENU_FORM."</th></tr>
-          <tr><th style='width:120px;'>"._MD_UGMPAGE_TITLE."</th>
-      	    <td><label for='menu_title'></label><input type='text' name='menu_title' size='40' value='{$menu_title}' id='menu_title' class='validate[required]'></td>
-      	  {$menu_ofsn_0_form}
-          <tr><th>"._MD_UGMPAGE_CATE_ENABLE."</th>
-      	      <td><input type='radio' name='menu_enable' id='menu_enable_1' value='1' ".chk($menu_enable,'1')."><label for='menu_enable_1'>"._YES."</label>
-                  <input type='radio' name='menu_enable' id='menu_enable_0' value='0' ".chk($menu_enable,'0')."><span><label for='menu_enable_0'>"._NO."</label></span>
-              </td>
-          </tr>
-          <tr><th>"._MD_UGMPAGE_CATE_SORT."</th>
-      	      <td><label for='menu_sort'></label><input type='text' name='menu_sort' size='10' value='{$menu_sort}' id='menu_sort'></td>
-          </tr>
-          {$menu_type2_upload_file}
-    	    <tr><th colspan='2'>
-    	      <input type='hidden' name='menu_sn' value='{$menu_sn}'>
-    	      <input type='hidden' name='menu_type' value='{$menu_type}'>
-    	      <input type='hidden' name='menu_ofsn' value='{$menu_ofsn}'>
-          	<input type='hidden' name='op' value='op_insert'>
-            <input type='submit' name='submit' value='"._MD_SAVE."'>
-            </th></tr>
-    	 </table>
-    </form>
-       ";
-  //$main=ugm_div(_MD_UGMPAGE_MENU_T2_TITLE,$main);
-  break;
-
-  //============================================================================
-  case "3": //跑馬燈(2層)第一層是類別 (不傳檔案)
-  	//抓取預設值
-  	if(!$menu_sn==0){
-			//編輯
-			$DBV=get_sn_one("select * from ".$xoopsDB->prefix(_DB_MENU_TABLE)." where menu_sn='$menu_sn'");
-  	}else{
-  		$DBV=array();
-  	}
-	  //預設值設定
-  	$menu_title    =(!isset($DBV['menu_title']))   ?"":$DBV['menu_title'];     //標題
-  	$menu_enable   =(!isset($DBV['menu_enable']))  ?"1":$DBV['menu_enable'];   //顯示
-  	$menu_new      =(!isset($DBV['menu_new']))     ?"0":$DBV['menu_new'];      //開新視窗
-  	$menu_url      =(!isset($DBV['menu_url']))     ?"":$DBV['menu_url'];;      //網址
-  	$menu_sort    =(!isset($DBV['menu_sort']))     ?get_max_menu_sort($menu_type,$menu_ofsn):$DBV['menu_sort'];
-  	$menu_tip      =(!isset($DBV['menu_tip']))     ?"":$DBV['menu_tip'];
-    //=========================================================================
-    $menu_ofsn_0_form="";
-    if($menu_ofsn!=0){
-      $menu_ofsn_0_form="
-        <tr><th>"._MD_UGMPAGE_MENU_TIP."</th>
-      	    <td><label for='menu_tip'></label><input type='text' name='menu_tip' size='40' value='{$menu_tip}' id='menu_tip'></td>
-        </tr>
-        <tr><th>"._MD_UGMPAGE_MENU_URL."</th>
-      	    <td><label for='menu_url'></label><input type='text' name='menu_url' size='40' value='{$menu_url}' id='menu_url'></td>
-        </tr>
-        <tr><th>"._MD_UGMPAGE_MENU_NEW."</th>
-      	    <td><input type='radio' name='menu_new' id='menu_new_1' value='1' ".chk($menu_new,'1')."><label for='menu_new_1'>"._YES."</label>
-                <input type='radio' name='menu_new' id='menu_new_0' value='0' ".chk($menu_new,'0')."><span><label for='menu_new_0'>"._NO."</label></span>
-            </td>
-        </tr>
-      ";
-    }
-    $main.="{$formValidator_code}
-      <form action='{$_SERVER['PHP_SELF']}' method='post' id='{$DIRNAME}_Form' class='form-inline'>
-  	    <table  id='form_table' class='table table-bordered table-condensed table-hover'>
-   	      <tr><th colspan='2'>"._MD_UGMPAGE_MENU_T3_TITLE._MD_UGMPAGE_MENU_FORM."</th></tr>
-          <tr><th style='width:120px;'>"._MD_UGMPAGE_TITLE."</th>
-      	    <td><label for='menu_title'></label><input type='text' name='menu_title' size='40' value='{$menu_title}' id='menu_title' class='validate[required]'></td>
-      	  {$menu_ofsn_0_form}
-          <tr><th>"._MD_UGMPAGE_CATE_ENABLE."</th>
-      	      <td><input type='radio' name='menu_enable' id='menu_enable_1' value='1' ".chk($menu_enable,'1')."><label for='menu_enable_1'>"._YES."</label>
-                  <input type='radio' name='menu_enable' id='menu_enable_0' value='0' ".chk($menu_enable,'0')."><span><label for='menu_enable_0'>"._NO."</label></span>
-              </td>
-          </tr>
-          <tr><th>"._MD_UGMPAGE_CATE_SORT."</th>
-      	      <td><label for='menu_sort'></label><input type='text' name='menu_sort' size='10' value='{$menu_sort}' id='menu_sort'></td>
-          </tr>
-    	    <tr><th colspan='2'>
-    	      <input type='hidden' name='menu_sn' value='{$menu_sn}'>
-    	      <input type='hidden' name='menu_type' value='{$menu_type}'>
-    	      <input type='hidden' name='menu_ofsn' value='{$menu_ofsn}'>
-          	<input type='hidden' name='op' value='op_insert'>
-            <input type='submit' name='submit' value='"._MD_SAVE."'>
-            </th></tr>
-    	 </table>
-    </form>
-       ";
-  //$main=ugm_div(_MD_UGMPAGE_MENU_T3_TITLE,$main);
-  break;
-  //============================================================================
-  case "4": //下拉選單(4層)第一層是類別
-  	//抓取預設值
-  	if(!$menu_sn==0){
-			//編輯
-			$DBV=get_sn_one("select * from ".$xoopsDB->prefix(_DB_MENU_TABLE)." where menu_sn='$menu_sn'");
-  	}else{
-  		$DBV=array();
-  	}
-	  //預設值設定
-  	$menu_title    =(!isset($DBV['menu_title']))   ?"":$DBV['menu_title'];     //標題
-  	$menu_enable   =(!isset($DBV['menu_enable']))  ?"1":$DBV['menu_enable'];   //顯示
-  	$menu_new      =(!isset($DBV['menu_new']))     ?"0":$DBV['menu_new'];      //開新視窗
-  	$menu_url      =(!isset($DBV['menu_url']))     ?"":$DBV['menu_url'];;      //網址
-  	$menu_sort    =(!isset($DBV['menu_sort']))     ?get_max_menu_sort($menu_type,$menu_ofsn):$DBV['menu_sort'];
-  	$menu_tip      =(!isset($DBV['menu_tip']))     ?"":$DBV['menu_tip'];
-    //=========================================================================
-    $menu_ofsn_0_form="";
-    if($menu_ofsn!=0){
-      $menu_ofsn_0_form="
-        <tr><th>"._MD_UGMPAGE_MENU_TIP."</th>
-      	    <td><label for='menu_tip'></label><input type='text' name='menu_tip' size='40' value='{$menu_tip}' id='menu_tip'></td>
-        </tr>
-        <tr><th>"._MD_UGMPAGE_MENU_URL."</th>
-      	    <td><label for='menu_url'></label><input type='text' name='menu_url' size='40' value='{$menu_url}' id='menu_url'></td>
-        </tr>
-        <tr><th>"._MD_UGMPAGE_MENU_NEW."</th>
-      	    <td><input type='radio' name='menu_new' id='menu_new_1' value='1' ".chk($menu_new,'1')."><label for='menu_new_1'>"._YES."</label>
-                <input type='radio' name='menu_new' id='menu_new_0' value='0' ".chk($menu_new,'0')."><span><label for='menu_new_0'>"._NO."</label></span>
-            </td>
-        </tr>
-      ";
-    }
-    $main.="{$formValidator_code}
-      <form action='{$_SERVER['PHP_SELF']}' method='post' id='{$DIRNAME}_Form' class='form-inline'>
-  	    <table id='{$DIRNAME}_table' border='0' cellspacing='3' cellpadding='3' class='ugm_tb'>
-   	      <tr><th colspan='2'>"._MD_UGMPAGE_MENU_T4_TITLE."</th></tr>
-          <tr><th style='width:120px;'>"._MD_UGMPAGE_TITLE."</th>
-      	    <td><label for='menu_title'></label><input type='text' name='menu_title' size='40' value='{$menu_title}' id='menu_title' class='validate[required]'></td>
-      	  {$menu_ofsn_0_form}
-          <tr><th>"._MD_UGMPAGE_CATE_ENABLE."</th>
-      	      <td><input type='radio' name='menu_enable' id='menu_enable_1' value='1' ".chk($menu_enable,'1')."><label for='menu_enable_1'>"._YES."</label>
-                  <input type='radio' name='menu_enable' id='menu_enable_0' value='0' ".chk($menu_enable,'0')."><span><label for='menu_enable_0'>"._NO."</label></span>
-              </td>
-          </tr>
-          <tr><th>"._MD_UGMPAGE_CATE_SORT."</th>
-      	      <td><label for='menu_sort'></label><input type='text' name='menu_sort' size='10' value='{$menu_sort}' id='menu_sort'></td>
-          </tr>
-    	    <tr><th colspan='2'>
-    	      <input type='hidden' name='menu_sn' value='{$menu_sn}'>
-    	      <input type='hidden' name='menu_type' value='{$menu_type}'>
-    	      <input type='hidden' name='menu_ofsn' value='{$menu_ofsn}'>
-          	<input type='hidden' name='op' value='op_insert'>
-            <input type='submit' name='submit' value='"._MD_SAVE."'>
-            </th></tr>
-    	 </table>
-    </form>
-       ";
-  //$main=ugm_div(_MD_UGMPAGE_MENU_T4_TITLE,$main);
-  break;
-  /*
-  case "5": //單層選單(2層)第一層是類別
-  	//抓取預設值
-  	if(!$menu_sn==0){
-			//編輯
-			$DBV=get_sn_one("select * from ".$xoopsDB->prefix(_DB_MENU_TABLE)." where menu_sn='$menu_sn'");
-  	}else{
-  		$DBV=array();
-  	}
-	  //預設值設定
-  	$menu_title    =(!isset($DBV['menu_title']))   ?"":$DBV['menu_title'];     //標題
-  	$menu_enable   =(!isset($DBV['menu_enable']))  ?"1":$DBV['menu_enable'];   //顯示
-  	$menu_new      =(!isset($DBV['menu_new']))     ?"0":$DBV['menu_new'];      //開新視窗
-  	$menu_url      =(!isset($DBV['menu_url']))     ?"":$DBV['menu_url'];;      //網址
-  	$menu_sort    =(!isset($DBV['menu_sort']))     ?get_max_menu_sort($menu_type,$menu_ofsn):$DBV['menu_sort'];
-  	$menu_tip      =(!isset($DBV['menu_tip']))     ?"":$DBV['menu_tip'];
-    //=========================================================================
-    $menu_ofsn_0_form="";
-    if($menu_ofsn!=0){
-      $menu_ofsn_0_form="
-        <tr><th>"._MD_UGMPAGE_MENU_TIP."</th>
-      	    <td><label for='menu_tip'></label><input type='text' name='menu_tip' size='40' value='{$menu_tip}' id='menu_tip'></td>
-        </tr>
-        <tr><th>"._MD_UGMPAGE_MENU_URL."</th>
-      	    <td><label for='menu_url'></label><input type='text' name='menu_url' size='40' value='{$menu_url}' id='menu_url'></td>
-        </tr>
-        <tr><th>"._MD_UGMPAGE_MENU_NEW."</th>
-      	    <td><input type='radio' name='menu_new' id='menu_new_1' value='1' ".chk($menu_new,'1')."><label for='menu_new_1'>"._YES."</label>
-                <input type='radio' name='menu_new' id='menu_new_0' value='0' ".chk($menu_new,'0')."><span><label for='menu_new_0'>"._NO."</label></span>
-            </td>
-        </tr>
-      ";
-    }
-    $main.="{$formValidator_code}
-      <form action='{$_SERVER['PHP_SELF']}' method='post' id='{$DIRNAME}_Form'>
-  	    <table id='{$DIRNAME}_table' border='0' cellspacing='3' cellpadding='3' class='ugm_tb'>
-   	      <tr><th colspan='2'>"._MD_UGMPAGE_MENU_T1_TITLE."</th></tr>
-          <tr><th style='width:120px;'>"._MD_UGMPAGE_TITLE."</th>
-      	    <td><label for='menu_title'></label><input type='text' name='menu_title' size='40' value='{$menu_title}' id='menu_title' class='validate[required]'></td>
-      	  {$menu_ofsn_0_form}
-          <tr><th>"._MD_UGMPAGE_CATE_ENABLE."</th>
-      	      <td><input type='radio' name='menu_enable' id='menu_enable_1' value='1' ".chk($menu_enable,'1')."><label for='menu_enable_1'>"._YES."</label>
-                  <input type='radio' name='menu_enable' id='menu_enable_0' value='0' ".chk($menu_enable,'0')."><span><label for='menu_enable_0'>"._NO."</label></span>
-              </td>
-          </tr>
-          <tr><th>"._MD_UGMPAGE_CATE_SORT."</th>
-      	      <td><label for='menu_sort'></label><input type='text' name='menu_sort' size='10' value='{$menu_sort}' id='menu_sort'></td>
-          </tr>
-    	    <tr><th colspan='2'>
-    	      <input type='hidden' name='menu_sn' value='{$menu_sn}'>
-    	      <input type='hidden' name='menu_type' value='{$menu_type}'>
-    	      <input type='hidden' name='menu_ofsn' value='{$menu_ofsn}'>
-          	<input type='hidden' name='op' value='op_insert'>
-            <input type='submit' name='submit' value='"._MD_SAVE."'>
-            </th></tr>
-    	 </table>
-    </form>
-       ";
-  $main=ugm_div(_MD_UGMPAGE_MENU_T1_TITLE,$main);
-  break;
-  */
-  }
   return $main;
 }
+
 ################################################################################
 #   取得選單選項get_menu_option
-#
-#
-#
-#
 ################################################################################
 function get_menu_option($menu_type=0,$menu_ofsn=0,$menu_sn_chk=0,$stop_level=1,$level=0){
   global $xoopsDB;
@@ -519,300 +272,344 @@ function op_list($menu_type=0,$menu_ofsn=0,$menu_sn=0){
 	global $xoopsDB,$xoopsModule,$xoopsConfig;
   $_SESSION['ugm_return']=$_GET['menu_sn']?$_GET['menu_sn']:"all";
   $DIRNAME=$xoopsModule->getVar('dirname');
-	# 連結選單
+  
+  # 連結選單
   $head_ugm_direct="
-     <li>
-       <div class='bc_separator'>
-         <select name='menu_type' size=1 onChange='location.href=\"{$_SERVER['PHP_SELF']}?menu_type=\"+this.value' style='width:100px;'>
-            <option value='1' ".chk($menu_type,1,1,"selected").">"._MD_UGMPAGE_MENU_T1_TITLE."</option>
-            <option value='2' ".chk($menu_type,2,0,"selected").">"._MD_UGMPAGE_MENU_T2_TITLE."</option>
-            <option value='3' ".chk($menu_type,3,0,"selected").">"._MD_UGMPAGE_MENU_T3_TITLE."</option>
-            <option value='4' ".chk($menu_type,4,0,"selected").">"._MD_UGMPAGE_MENU_T4_TITLE."</option>
-            <option value='5' ".chk($menu_type,5,0,"selected").">"._MD_UGMPAGE_MENU_T5_TITLE."</option>
-         </select>
-       </div>
-     </li>
-   ";
+    <li>
+      <select class='form-control' name='menu_type' size=1 onChange='location.href=\"{$_SERVER['PHP_SELF']}?menu_type=\"+this.value'>
+        <option value='1' ".chk($menu_type,1,1,"selected").">"._MD_UGMPAGE_MENU_T1_TITLE."</option>
+        <option value='2' ".chk($menu_type,2,0,"selected").">"._MD_UGMPAGE_MENU_T2_TITLE."</option>
+        <option value='3' ".chk($menu_type,3,0,"selected").">"._MD_UGMPAGE_MENU_T3_TITLE."</option>
+        <option value='4' ".chk($menu_type,4,0,"selected").">"._MD_UGMPAGE_MENU_T4_TITLE."</option>
+        <option value='5' ".chk($menu_type,5,0,"selected").">"._MD_UGMPAGE_MENU_T5_TITLE."</option>
+        <option value='6' ".chk($menu_type,6,0,"selected").">"._MD_UGMPAGE_MENU_T6_TITLE."</option>
+      </select>
+    </li>
+  ";
   switch($menu_type){
-  case "1": //伸縮選單(三層，第一層索引)
-    $stop_level=3;
-    $level=0;
-    $last_url=0;//最後一層不須連結
-    $selected=($menu_sn==0)?" selected=selected":"";//沒有傳選單，則選擇全部
-    $direct_menu=($menu_sn==0)?"":direct_menu($menu_type,$menu_sn,$level,$last_url);
-    //-------------------------------------------------------------------
-    $ugm_direct="
-      <ul class='ugm_direct'>
-        {$head_ugm_direct}
-        <li>
-          <div class='bc_separator'>
-            <select name='menu_sn' size=1 onChange='location.href=\"{$_SERVER['PHP_SELF']}?menu_type={$menu_type}&menu_sn=\"+this.value'>
+    case "1": //伸縮選單(三層，第一層索引)
+      $stop_level=3;
+      $level=0;
+      $last_url=0;//最後一層不須連結
+      $selected=($menu_sn==0)?" selected=selected":"";//沒有傳選單，則選擇全部
+      $direct_menu=($menu_sn==0)?"":direct_menu($menu_type,$menu_sn,$level,$last_url);
+      //-------------------------------------------------------------------
+      $ugm_direct="
+        <ul class='ugm_direct'>
+          {$head_ugm_direct}
+          <li>            
+            <select class='form-control' name='menu_sn' size=1 onChange='location.href=\"{$_SERVER['PHP_SELF']}?menu_type={$menu_type}&menu_sn=\"+this.value'>
               <option value='all'{$selected}>"._MD_UGMPAGE_MENU_ALL."</option>".get_menu_option($menu_type,$menu_ofsn,$menu_sn,$stop_level-1)."
             </select>
-          </div>
-        </li>
-        <li>
-          <a href='{$_SERVER['PHP_SELF']}?op=op_form&menu_type={$menu_type}&menu_ofsn=0' class='bc_separator'>&nbsp;<img src='".XOOPS_URL."/modules/{$DIRNAME}/images/i_new_cate.gif' title='"._MD_UGMPAGE_MENU_ADD_CATE."' >"._MD_UGMPAGE_MENU_ADD_CATE."</a>
-        </li>
-        <li >
-           <a href='{$_SERVER['PHP_SELF']}?menu_type={$menu_type}&menu_sn=all' class='bc_separator'>"._MD_UGMPAGE_MENU_HOME." </a>
-        </li>
-        $direct_menu
-      </ul>
-      ";
-    //$ugm_direct=ugm_div("",$ugm_direct,"shadow1");
-  //------------------------------------------------------------------
-    $main.="
-      <script>
-  	    function delete_{$DIRNAME}_func(menu_sn){
-  		    var sure = window.confirm('"._BP_DEL_CHK."');
-  		    if (!sure)	return;
-  		    location.href=\"{$_SERVER['PHP_SELF']}?op=op_del&menu_type={$menu_type}&menu_sn=\" + menu_sn;
-  	    }
-  	  </script>
-      <div id='{$DIRNAME}_table'>
-      <form action='{$_SERVER['PHP_SELF']}' method='post'>
+          </li>
+            
+          <li>
+            <a href='{$_SERVER['PHP_SELF']}?op=op_form&menu_type={$menu_type}&menu_ofsn=0' class='bc_separator'>&nbsp;<i class='fa fa-plus-square' aria-hidden='true'></i>"._MD_UGMPAGE_MENU_ADD_CATE."</a>
+          </li>
+          <li >
+            <a href='{$_SERVER['PHP_SELF']}?menu_type={$menu_type}&menu_sn=all' class='bc_separator'>"._MD_UGMPAGE_MENU_HOME." </a>
+          </li>
+          $direct_menu
+        </ul>
+        ";
+      //$ugm_direct=ugm_div("",$ugm_direct,"shadow1");
+    //------------------------------------------------------------------
+      $main.="
+        <script>
+          function delete_{$DIRNAME}_func(menu_sn){
+            var sure = window.confirm('"._BP_DEL_CHK."');
+            if (!sure)	return;
+            location.href=\"{$_SERVER['PHP_SELF']}?op=op_del&menu_type={$menu_type}&menu_sn=\" + menu_sn;
+          }
+        </script>
+        <div id='{$DIRNAME}_table'>
+        <form action='{$_SERVER['PHP_SELF']}' method='post'>
 
-      $ugm_direct
-  	  <table  id='form_table' class='table table-bordered table-condensed table-hover'>
-      	<tr>
-        	<th>"._MD_UGMPAGE_TITLE."</th>
-        	<th style='width:30px;'>"._MD_UGMPAGE_ENABLE."</th>
-        	<th style='width:30px;'>"._MD_UGMPAGE_MENU_NEW."</th>
-        	<th style='width:30px;'>"._MD_UGMPAGE_CATE_SORT."</th>
-        	<th style='width:200px'>"._MD_UGMPAGE_MENU_URL."</th>
-        	<th style='width:80px;'>"._BP_FUNCTION."</th>
-      	</tr>
-      	";
-  	$main.=get_list_body($menu_type,$menu_ofsn,$menu_sn,$stop_level,$level);//(type,of_sn,sn,level,stop_level)
-  	$main.="</table></form></div>";
-  	//$main=ugm_div(_MD_UGMPAGE_MENU_T1_TITLE,$main,"");
-  break;
+        $ugm_direct
+        <table  id='form_table' class='table table-bordered table-condensed table-hover'>
+          <tr>
+            <th>"._MD_UGMPAGE_TITLE."</th>
+            <th style='width:30px;'>"._MD_UGMPAGE_ENABLE."</th>
+            <th style='width:30px;'>"._MD_UGMPAGE_MENU_NEW."</th>
+            <th style='width:30px;'>"._MD_UGMPAGE_CATE_SORT."</th>
+            <th style='width:200px'>"._MD_UGMPAGE_MENU_URL."</th>
+            <th style='width:80px;'>"._BP_FUNCTION."</th>
+          </tr>
+          ";
+      $main.=get_list_body($menu_type,$menu_ofsn,$menu_sn,$stop_level,$level);//(type,of_sn,sn,level,stop_level)
+      $main.="</table></form></div>";
+      //$main=ugm_div(_MD_UGMPAGE_MENU_T1_TITLE,$main,"");
+    break;
 
-  case "2": //圖片輪撥(二層，第一層索引)
-    $stop_level=2;
-    $level=0;
-    $last_url=0;//最後一層不須連結
-    $selected=($menu_sn==0)?" selected=selected":"";//沒有傳選單，則選擇全部
-    $direct_menu=($menu_sn==0)?"":direct_menu($menu_type,$menu_sn,$level,$last_url);
-    //-------------------------------------------------------------------
-    $ugm_direct="
-      <ul class='ugm_direct'>
-        {$head_ugm_direct}
-        <li>
-          <div class='bc_separator'>
-            <select name='menu_sn' size=1 onChange='location.href=\"{$_SERVER['PHP_SELF']}?menu_type={$menu_type}&menu_sn=\"+this.value'>
+    case "2": //圖片輪撥(二層，第一層索引)
+      $stop_level=2;
+      $level=0;
+      $last_url=0;//最後一層不須連結
+      $selected=($menu_sn==0)?" selected=selected":"";//沒有傳選單，則選擇全部
+      $direct_menu=($menu_sn==0)?"":direct_menu($menu_type,$menu_sn,$level,$last_url);
+      //-------------------------------------------------------------------
+      $ugm_direct="
+        <ul class='ugm_direct'>
+          {$head_ugm_direct} 
+          <li>
+            <select class='form-control' name='menu_sn' size=1 onChange='location.href=\"{$_SERVER['PHP_SELF']}?menu_type={$menu_type}&menu_sn=\"+this.value'>
               <option value='all'{$selected}>"._MD_UGMPAGE_MENU_ALL."</option>".get_menu_option($menu_type,$menu_ofsn,$menu_sn,$stop_level-1)."
             </select>
-          </div>
-        </li>
-        <li>
-          <a href='{$_SERVER['PHP_SELF']}?op=op_form&menu_type={$menu_type}&menu_ofsn=0' class='bc_separator'>&nbsp;<img src='".XOOPS_URL."/modules/{$DIRNAME}/images/i_new_cate.gif' title='"._MD_UGMPAGE_MENU_ADD_CATE."' >"._MD_UGMPAGE_MENU_ADD_CATE."</a>
-        </li>
-        <li >
-           <a href='{$_SERVER['PHP_SELF']}?menu_type={$menu_type}&menu_sn=all' class='bc_separator'>"._MD_UGMPAGE_MENU_HOME." </a>
-        </li>
-        $direct_menu
-      </ul>
-      ";
-    //$ugm_direct=ugm_div("",$ugm_direct,"shadow1");
-  //------------------------------------------------------------------
-    $main.="
-      <script>
-  	    function delete_{$DIRNAME}_func(menu_sn){
-  		    var sure = window.confirm('"._BP_DEL_CHK."');
-  		    if (!sure)	return;
-  		    location.href=\"{$_SERVER['PHP_SELF']}?op=op_del&menu_type={$menu_type}&menu_sn=\" + menu_sn;
-  	    }
-  	  </script>
-      <div id='{$DIRNAME}_table'>
-      <form action='{$_SERVER['PHP_SELF']}' method='post'>
+          </li>
+          <li>
+            <a href='{$_SERVER['PHP_SELF']}?op=op_form&menu_type={$menu_type}&menu_ofsn=0' class='bc_separator'>&nbsp;<i title='".sprintf(_MD_UGMPAGE_MENU_ADD_SUB,$menu_title)."' class='fa fa-plus-square' aria-hidden='true'></i>"._MD_UGMPAGE_MENU_ADD_CATE."</a>
+          </li>
+          <li >
+            <a href='{$_SERVER['PHP_SELF']}?menu_type={$menu_type}&menu_sn=all' class='bc_separator'>"._MD_UGMPAGE_MENU_HOME." </a>
+          </li>
+          $direct_menu
+        </ul>
+        ";
+      //$ugm_direct=ugm_div("",$ugm_direct,"shadow1");
+    //------------------------------------------------------------------
+      $main.="
+        <script>
+          function delete_{$DIRNAME}_func(menu_sn){
+            var sure = window.confirm('"._BP_DEL_CHK."');
+            if (!sure)	return;
+            location.href=\"{$_SERVER['PHP_SELF']}?op=op_del&menu_type={$menu_type}&menu_sn=\" + menu_sn;
+          }
+        </script>
+        <div id='{$DIRNAME}_table'>
+        <form action='{$_SERVER['PHP_SELF']}' method='post'>
 
-      $ugm_direct
-  	  <table  id='form_table' class='table table-bordered table-condensed table-hover'>
-      	<tr>
-        	<th>"._MD_UGMPAGE_TITLE."</th>
-        	<th style='width:30px;'>"._MD_UGMPAGE_ENABLE."</th>
-        	<th style='width:30px;'>"._MD_UGMPAGE_MENU_NEW."</th>
-        	<th style='width:30px;'>"._MD_UGMPAGE_CATE_SORT."</th>
-        	<th style='width:200px'>"._MD_UGMPAGE_MENU_URL."</th>
-        	<th style='width:80px;'>"._BP_FUNCTION."</th>
-      	</tr>
-      	";
-  	$main.=get_list_body($menu_type,$menu_ofsn,$menu_sn,$stop_level,$level);//(type,of_sn,sn,level,stop_level)
-  	$main.="</table></form></div>";
-  	//$main=ugm_div(_MD_UGMPAGE_MENU_T2_TITLE,$main,"");
-  break;
+        $ugm_direct
+        <table  id='form_table' class='table table-bordered table-condensed table-hover'>
+          <tr>
+            <th>"._MD_UGMPAGE_TITLE."</th>
+            <th style='width:30px;'>"._MD_UGMPAGE_ENABLE."</th>
+            <th style='width:30px;'>"._MD_UGMPAGE_MENU_NEW."</th>
+            <th style='width:30px;'>"._MD_UGMPAGE_CATE_SORT."</th>
+            <th style='width:200px'>"._MD_UGMPAGE_MENU_URL."</th>
+            <th style='width:80px;'>"._BP_FUNCTION."</th>
+          </tr>
+          ";
+      $main.=get_list_body($menu_type,$menu_ofsn,$menu_sn,$stop_level,$level);//(type,of_sn,sn,level,stop_level)
+      $main.="</table></form></div>";
+      //$main=ugm_div(_MD_UGMPAGE_MENU_T2_TITLE,$main,"");
+    break;
 
-  case "3": //跑馬燈(二層，第一層索引)
-    $stop_level=2;
-    $level=0;
-    $last_url=0;//最後一層不須連結
-    $selected=($menu_sn==0)?" selected=selected":"";//沒有傳選單，則選擇全部
-    $direct_menu=($menu_sn==0)?"":direct_menu($menu_type,$menu_sn,$level,$last_url);
-    //-------------------------------------------------------------------
-    $ugm_direct="
-      <ul class='ugm_direct'>
-        {$head_ugm_direct}
-        <li>
-          <div class='bc_separator'>
-            <select name='menu_sn' size=1 onChange='location.href=\"{$_SERVER['PHP_SELF']}?menu_type={$menu_type}&menu_sn=\"+this.value'>
+    case "3": //跑馬燈(二層，第一層索引)
+      $stop_level=2;
+      $level=0;
+      $last_url=0;//最後一層不須連結
+      $selected=($menu_sn==0)?" selected=selected":"";//沒有傳選單，則選擇全部
+      $direct_menu=($menu_sn==0)?"":direct_menu($menu_type,$menu_sn,$level,$last_url);
+      //-------------------------------------------------------------------
+      $ugm_direct="
+        <ul class='ugm_direct'>
+          {$head_ugm_direct}
+          <li>
+            <select class='form-control' name='menu_sn' size=1 onChange='location.href=\"{$_SERVER['PHP_SELF']}?menu_type={$menu_type}&menu_sn=\"+this.value'>
               <option value='all'{$selected}>"._MD_UGMPAGE_MENU_ALL."</option>".get_menu_option($menu_type,$menu_ofsn,$menu_sn,$stop_level-1)."
             </select>
-          </div>
-        </li>
-        <li>
-          <a href='{$_SERVER['PHP_SELF']}?op=op_form&menu_type={$menu_type}&menu_ofsn=0' class='bc_separator'>&nbsp;<img src='".XOOPS_URL."/modules/{$DIRNAME}/images/i_new_cate.gif' title='"._MD_UGMPAGE_MENU_ADD_CATE."' >"._MD_UGMPAGE_MENU_ADD_CATE."</a>
-        </li>
-        <li >
-           <a href='{$_SERVER['PHP_SELF']}?menu_type={$menu_type}&menu_sn=all' class='bc_separator'>"._MD_UGMPAGE_MENU_HOME." </a>
-        </li>
-        $direct_menu
-      </ul>
-      ";
-    //$ugm_direct=ugm_div("",$ugm_direct,"shadow1");
-  //------------------------------------------------------------------
-    $main.="
-      <script>
-  	    function delete_{$DIRNAME}_func(menu_sn){
-  		    var sure = window.confirm('"._BP_DEL_CHK."');
-  		    if (!sure)	return;
-  		    location.href=\"{$_SERVER['PHP_SELF']}?op=op_del&menu_type={$menu_type}&menu_sn=\" + menu_sn;
-  	    }
-  	  </script>
-      <div id='{$DIRNAME}_table'>
-      <form action='{$_SERVER['PHP_SELF']}' method='post'>
+          </li>
+          <li>
+            <a href='{$_SERVER['PHP_SELF']}?op=op_form&menu_type={$menu_type}&menu_ofsn=0' class='bc_separator'>&nbsp;<i title='".sprintf(_MD_UGMPAGE_MENU_ADD_SUB,$menu_title)."' class='fa fa-plus-square' aria-hidden='true'></i>"._MD_UGMPAGE_MENU_ADD_CATE."</a>
+          </li>
+          <li >
+            <a href='{$_SERVER['PHP_SELF']}?menu_type={$menu_type}&menu_sn=all' class='bc_separator'>"._MD_UGMPAGE_MENU_HOME." </a>
+          </li>
+          $direct_menu
+        </ul>
+        ";
+      //$ugm_direct=ugm_div("",$ugm_direct,"shadow1");
+    //------------------------------------------------------------------
+      $main.="
+        <script>
+          function delete_{$DIRNAME}_func(menu_sn){
+            var sure = window.confirm('"._BP_DEL_CHK."');
+            if (!sure)	return;
+            location.href=\"{$_SERVER['PHP_SELF']}?op=op_del&menu_type={$menu_type}&menu_sn=\" + menu_sn;
+          }
+        </script>
+        <div id='{$DIRNAME}_table'>
+        <form action='{$_SERVER['PHP_SELF']}' method='post'>
 
-      $ugm_direct
-  	  <table id='form_table' class='table table-bordered table-condensed table-hover'>
-      	<tr>
-        	<th>"._MD_UGMPAGE_TITLE."</th>
-        	<th style='width:30px;'>"._MD_UGMPAGE_ENABLE."</th>
-        	<th style='width:30px;'>"._MD_UGMPAGE_MENU_NEW."</th>
-        	<th style='width:30px;'>"._MD_UGMPAGE_CATE_SORT."</th>
-        	<th style='width:200px'>"._MD_UGMPAGE_MENU_URL."</th>
-        	<th style='width:80px;'>"._BP_FUNCTION."</th>
-      	</tr>
-      	";
-  	$main.=get_list_body($menu_type,$menu_ofsn,$menu_sn,$stop_level,$level);//(type,of_sn,sn,level,stop_level)
-  	$main.="</table></form></div>";
-  	//$main=ugm_div(_MD_UGMPAGE_MENU_T3_TITLE,$main,"");
-  break;
+        $ugm_direct
+        <table id='form_table' class='table table-bordered table-condensed table-hover'>
+          <tr>
+            <th>"._MD_UGMPAGE_TITLE."</th>
+            <th style='width:30px;'>"._MD_UGMPAGE_ENABLE."</th>
+            <th style='width:30px;'>"._MD_UGMPAGE_MENU_NEW."</th>
+            <th style='width:30px;'>"._MD_UGMPAGE_CATE_SORT."</th>
+            <th style='width:200px'>"._MD_UGMPAGE_MENU_URL."</th>
+            <th style='width:80px;'>"._BP_FUNCTION."</th>
+          </tr>
+          ";
+      $main.=get_list_body($menu_type,$menu_ofsn,$menu_sn,$stop_level,$level);//(type,of_sn,sn,level,stop_level)
+      $main.="</table></form></div>";
+      //$main=ugm_div(_MD_UGMPAGE_MENU_T3_TITLE,$main,"");
+    break;
 
-  case "4": //下拉選單(四層，第一層索引)
+    case "4": //下拉選單(四層，第一層索引)
+      $stop_level=4;
+      $level=0;
+      $last_url=0;//最後一層不須連結
+      $selected=($menu_sn==0)?" selected=selected":"";//沒有傳選單，則選擇全部
+      $direct_menu=($menu_sn==0)?"":direct_menu($menu_type,$menu_sn,$level,$last_url);
+      //-------------------------------------------------------------------
+      $ugm_direct="
+        <ul class='ugm_direct'>
+          {$head_ugm_direct}
+          <li>
+            <select class='form-control' name='menu_sn' size=1 onChange='location.href=\"{$_SERVER['PHP_SELF']}?menu_type={$menu_type}&menu_sn=\"+this.value'>
+              <option value='all'{$selected}>"._MD_UGMPAGE_MENU_ALL."</option>".get_menu_option($menu_type,$menu_ofsn,$menu_sn,$stop_level-1)."
+            </select>
+          </li>
+          <li>
+            <a href='{$_SERVER['PHP_SELF']}?op=op_form&menu_type={$menu_type}&menu_ofsn=0' class='bc_separator'>&nbsp;<i title='".sprintf(_MD_UGMPAGE_MENU_ADD_SUB,$menu_title)."' class='fa fa-plus-square' aria-hidden='true'></i>"._MD_UGMPAGE_MENU_ADD_CATE."</a>
+          </li>
+          <li >
+            <a href='{$_SERVER['PHP_SELF']}?menu_type={$menu_type}&menu_sn=all' class='bc_separator'>"._MD_UGMPAGE_MENU_HOME." </a>
+          </li>
+          $direct_menu
+        </ul>
+        ";
+      //$ugm_direct=ugm_div("",$ugm_direct,"shadow1");
+    //------------------------------------------------------------------
+      $main.="
+        <script>
+          function delete_{$DIRNAME}_func(menu_sn){
+            var sure = window.confirm('"._BP_DEL_CHK."');
+            if (!sure)	return;
+            location.href=\"{$_SERVER['PHP_SELF']}?op=op_del&menu_type={$menu_type}&menu_sn=\" + menu_sn;
+          }
+        </script>
+        <div id='{$DIRNAME}_table'>
+        <form action='{$_SERVER['PHP_SELF']}' method='post'>
+
+        $ugm_direct
+        <table  id='form_table' class='table table-bordered table-condensed table-hover'>
+          <tr>
+            <th>"._MD_UGMPAGE_TITLE."</th>
+            <th style='width:30px;'>"._MD_UGMPAGE_ENABLE."</th>
+            <th style='width:30px;'>"._MD_UGMPAGE_MENU_NEW."</th>
+            <th style='width:30px;'>"._MD_UGMPAGE_CATE_SORT."</th>
+            <th style='width:200px'>"._MD_UGMPAGE_MENU_URL."</th>
+            <th style='width:80px;'>"._BP_FUNCTION."</th>
+          </tr>
+          ";
+      $main.=get_list_body($menu_type,$menu_ofsn,$menu_sn,$stop_level,$level);//(type,of_sn,sn,level,stop_level)
+      $main.="</table></form></div>";
+      //$main=ugm_div(_MD_UGMPAGE_MENU_T4_TITLE,$main,"");
+    break;
+
+    case "5": //單層選單(2層，第一層索引)
+      $stop_level=2;
+      $level=0;
+      $last_url=0;//最後一層不須連結
+      $selected=($menu_sn==0)?" selected=selected":"";//沒有傳選單，則選擇全部
+      $direct_menu=($menu_sn==0)?"":direct_menu($menu_type,$menu_sn,$level,$last_url);
+      //-------------------------------------------------------------------
+      $ugm_direct="
+        <ul class='ugm_direct'>
+          {$head_ugm_direct}
+          <li>
+            <select class='form-control' name='menu_sn' size=1 onChange='location.href=\"{$_SERVER['PHP_SELF']}?menu_type={$menu_type}&menu_sn=\"+this.value'>
+              <option value='all'{$selected}>"._MD_UGMPAGE_MENU_ALL."</option>".get_menu_option($menu_type,$menu_ofsn,$menu_sn,$stop_level-1)."
+            </select>
+          </li>
+          <li>
+            <a href='{$_SERVER['PHP_SELF']}?op=op_form&menu_type={$menu_type}&menu_ofsn=0' class='bc_separator'>&nbsp;<i title='".sprintf(_MD_UGMPAGE_MENU_ADD_SUB,$menu_title)."' class='fa fa-plus-square' aria-hidden='true'></i>"._MD_UGMPAGE_MENU_ADD_CATE."</a>
+          </li>
+          <li >
+            <a href='{$_SERVER['PHP_SELF']}?menu_type={$menu_type}&menu_sn=all' class='bc_separator'>"._MD_UGMPAGE_MENU_HOME." </a>
+          </li>
+          $direct_menu
+        </ul>
+        ";
+      //$ugm_direct=ugm_div("",$ugm_direct,"shadow1");
+    //------------------------------------------------------------------
+      $main.="
+        <script>
+          function delete_{$DIRNAME}_func(menu_sn){
+            var sure = window.confirm('"._BP_DEL_CHK."');
+            if (!sure)	return;
+            location.href=\"{$_SERVER['PHP_SELF']}?op=op_del&menu_type={$menu_type}&menu_sn=\" + menu_sn;
+          }
+        </script>
+        <div id='{$DIRNAME}_table'>
+        <form action='{$_SERVER['PHP_SELF']}' method='post'>
+
+        $ugm_direct
+        <table  id='form_table' class='table table-bordered table-condensed table-hover'>
+          <tr>
+            <th>"._MD_UGMPAGE_TITLE."</th>
+            <th style='width:30px;'>"._MD_UGMPAGE_ENABLE."</th>
+            <th style='width:30px;'>"._MD_UGMPAGE_MENU_NEW."</th>
+            <th style='width:30px;'>"._MD_UGMPAGE_CATE_SORT."</th>
+            <th style='width:200px'>"._MD_UGMPAGE_MENU_URL."</th>
+            <th style='width:80px;'>"._BP_FUNCTION."</th>
+          </tr>
+          ";
+      $main.=get_list_body($menu_type,$menu_ofsn,$menu_sn,$stop_level,$level);//(type,of_sn,sn,level,stop_level)
+      $main.="</table></form></div>";
+      //$main=ugm_div(_MD_UGMPAGE_MENU_T5_TITLE,$main,"");
+    break;
+
+    case "6": //樹狀選單(四層，第一層索引)
     $stop_level=4;
     $level=0;
     $last_url=0;//最後一層不須連結
     $selected=($menu_sn==0)?" selected=selected":"";//沒有傳選單，則選擇全部
     $direct_menu=($menu_sn==0)?"":direct_menu($menu_type,$menu_sn,$level,$last_url);
     //-------------------------------------------------------------------
-    $ugm_direct="
+      $ugm_direct="
       <ul class='ugm_direct'>
         {$head_ugm_direct}
         <li>
-          <div class='bc_separator'>
-            <select name='menu_sn' size=1 onChange='location.href=\"{$_SERVER['PHP_SELF']}?menu_type={$menu_type}&menu_sn=\"+this.value' style='width:160px;'>
-              <option value='all'{$selected}>"._MD_UGMPAGE_MENU_ALL."</option>".get_menu_option($menu_type,$menu_ofsn,$menu_sn,$stop_level-1)."
-            </select>
-          </div>
+          <select class='form-control' name='menu_sn' size=1 onChange='location.href=\"{$_SERVER['PHP_SELF']}?menu_type={$menu_type}&menu_sn=\"+this.value'>
+            <option value='all'{$selected}>"._MD_UGMPAGE_MENU_ALL."</option>".get_menu_option($menu_type,$menu_ofsn,$menu_sn,$stop_level-1)."
+          </select>
         </li>
         <li>
-          <a href='{$_SERVER['PHP_SELF']}?op=op_form&menu_type={$menu_type}&menu_ofsn=0' class='bc_separator'>&nbsp;<img src='".XOOPS_URL."/modules/{$DIRNAME}/images/i_new_cate.gif' title='"._MD_UGMPAGE_MENU_ADD_CATE."' >"._MD_UGMPAGE_MENU_ADD_CATE."</a>
+          <a href='{$_SERVER['PHP_SELF']}?op=op_form&menu_type={$menu_type}&menu_ofsn=0' class='bc_separator'>&nbsp;<i title='".sprintf(_MD_UGMPAGE_MENU_ADD_SUB,$menu_title)."' class='fa fa-plus-square' aria-hidden='true'></i>"._MD_UGMPAGE_MENU_ADD_CATE."</a>
         </li>
         <li >
-           <a href='{$_SERVER['PHP_SELF']}?menu_type={$menu_type}&menu_sn=all' class='bc_separator'>"._MD_UGMPAGE_MENU_HOME." </a>
+          <a href='{$_SERVER['PHP_SELF']}?menu_type={$menu_type}&menu_sn=all' class='bc_separator'>"._MD_UGMPAGE_MENU_HOME." </a>
         </li>
         $direct_menu
       </ul>
       ";
-    //$ugm_direct=ugm_div("",$ugm_direct,"shadow1");
-  //------------------------------------------------------------------
-    $main.="
-      <script>
-  	    function delete_{$DIRNAME}_func(menu_sn){
-  		    var sure = window.confirm('"._BP_DEL_CHK."');
-  		    if (!sure)	return;
-  		    location.href=\"{$_SERVER['PHP_SELF']}?op=op_del&menu_type={$menu_type}&menu_sn=\" + menu_sn;
-  	    }
-  	  </script>
-      <div id='{$DIRNAME}_table'>
-      <form action='{$_SERVER['PHP_SELF']}' method='post'>
+      //$ugm_direct=ugm_div("",$ugm_direct,"shadow1");
+      //------------------------------------------------------------------
+      $main.="
+        <script>
+          function delete_{$DIRNAME}_func(menu_sn){
+            var sure = window.confirm('"._BP_DEL_CHK."');
+            if (!sure)	return;
+            location.href=\"{$_SERVER['PHP_SELF']}?op=op_del&menu_type={$menu_type}&menu_sn=\" + menu_sn;
+          }
+        </script>
+        <div id='{$DIRNAME}_table'>
+        <form action='{$_SERVER['PHP_SELF']}' method='post'>
 
-      $ugm_direct
-  	  <table  id='form_table' class='table table-bordered table-condensed table-hover'>
-      	<tr>
-        	<th>"._MD_UGMPAGE_TITLE."</th>
-        	<th style='width:30px;'>"._MD_UGMPAGE_ENABLE."</th>
-        	<th style='width:30px;'>"._MD_UGMPAGE_MENU_NEW."</th>
-        	<th style='width:30px;'>"._MD_UGMPAGE_CATE_SORT."</th>
-        	<th style='width:200px'>"._MD_UGMPAGE_MENU_URL."</th>
-        	<th style='width:80px;'>"._BP_FUNCTION."</th>
-      	</tr>
-      	";
-  	$main.=get_list_body($menu_type,$menu_ofsn,$menu_sn,$stop_level,$level);//(type,of_sn,sn,level,stop_level)
-  	$main.="</table></form></div>";
-  	//$main=ugm_div(_MD_UGMPAGE_MENU_T4_TITLE,$main,"");
-  break;
-
-  case "5": //單層選單(2層，第一層索引)
-    $stop_level=2;
-    $level=0;
-    $last_url=0;//最後一層不須連結
-    $selected=($menu_sn==0)?" selected=selected":"";//沒有傳選單，則選擇全部
-    $direct_menu=($menu_sn==0)?"":direct_menu($menu_type,$menu_sn,$level,$last_url);
-    //-------------------------------------------------------------------
-    $ugm_direct="
-      <ul class='ugm_direct'>
-        {$head_ugm_direct}
-        <li>
-          <div class='bc_separator'>
-            <select name='menu_sn' size=1 onChange='location.href=\"{$_SERVER['PHP_SELF']}?menu_type={$menu_type}&menu_sn=\"+this.value'>
-              <option value='all'{$selected}>"._MD_UGMPAGE_MENU_ALL."</option>".get_menu_option($menu_type,$menu_ofsn,$menu_sn,$stop_level-1)."
-            </select>
-          </div>
-        </li>
-        <li>
-          <a href='{$_SERVER['PHP_SELF']}?op=op_form&menu_type={$menu_type}&menu_ofsn=0' class='bc_separator'>&nbsp;<img src='".XOOPS_URL."/modules/{$DIRNAME}/images/i_new_cate.gif' title='"._MD_UGMPAGE_MENU_ADD_CATE."' >"._MD_UGMPAGE_MENU_ADD_CATE."</a>
-        </li>
-        <li >
-           <a href='{$_SERVER['PHP_SELF']}?menu_type={$menu_type}&menu_sn=all' class='bc_separator'>"._MD_UGMPAGE_MENU_HOME." </a>
-        </li>
-        $direct_menu
-      </ul>
-      ";
-    //$ugm_direct=ugm_div("",$ugm_direct,"shadow1");
-  //------------------------------------------------------------------
-    $main.="
-      <script>
-  	    function delete_{$DIRNAME}_func(menu_sn){
-  		    var sure = window.confirm('"._BP_DEL_CHK."');
-  		    if (!sure)	return;
-  		    location.href=\"{$_SERVER['PHP_SELF']}?op=op_del&menu_type={$menu_type}&menu_sn=\" + menu_sn;
-  	    }
-  	  </script>
-      <div id='{$DIRNAME}_table'>
-      <form action='{$_SERVER['PHP_SELF']}' method='post'>
-
-      $ugm_direct
-  	  <table  id='form_table' class='table table-bordered table-condensed table-hover'>
-      	<tr>
-        	<th>"._MD_UGMPAGE_TITLE."</th>
-        	<th style='width:30px;'>"._MD_UGMPAGE_ENABLE."</th>
-        	<th style='width:30px;'>"._MD_UGMPAGE_MENU_NEW."</th>
-        	<th style='width:30px;'>"._MD_UGMPAGE_CATE_SORT."</th>
-        	<th style='width:200px'>"._MD_UGMPAGE_MENU_URL."</th>
-        	<th style='width:80px;'>"._BP_FUNCTION."</th>
-      	</tr>
-      	";
-  	$main.=get_list_body($menu_type,$menu_ofsn,$menu_sn,$stop_level,$level);//(type,of_sn,sn,level,stop_level)
-  	$main.="</table></form></div>";
-  	//$main=ugm_div(_MD_UGMPAGE_MENU_T5_TITLE,$main,"");
-  break;
+        $ugm_direct
+        <table  id='form_table' class='table table-bordered table-condensed table-hover'>
+          <tr>
+            <th>"._MD_UGMPAGE_TITLE."</th>
+            <th style='width:30px;'>"._MD_UGMPAGE_ENABLE."</th>
+            <th style='width:30px;'>"._MD_UGMPAGE_MENU_NEW."</th>
+            <th style='width:30px;'>"._MD_UGMPAGE_CATE_SORT."</th>
+            <th style='width:200px'>"._MD_UGMPAGE_MENU_URL."</th>
+            <th style='width:80px;'>"._BP_FUNCTION."</th>
+          </tr>
+          ";
+      $main.=get_list_body($menu_type,$menu_ofsn,$menu_sn,$stop_level,$level);//(type,of_sn,sn,level,stop_level)
+      $main.="</table></form></div>";
+      //$main=ugm_div(_MD_UGMPAGE_MENU_T4_TITLE,$main,"");
+    break;
 
 
-	default:
-	  $main=$xoopsConfig['language'];
-	break;
+    default:
+      $main=$xoopsConfig['language'];
+    break;
   }
 
 	return $main;
@@ -843,9 +640,10 @@ function get_list_body($menu_type=0,$menu_ofsn=0,$menu_sn=0,$stop_level=1,$level
       $$k=$v;
     }
     switch($menu_type){
+      case "6": //樹狀選單(4層)第一層是類別
       case "1": //伸縮選單(3層)
         $chk_level=chk_level($menu_sn);
-        $create_sub=($chk_level<$stop_level-1)?"<a href='{$_SERVER['PHP_SELF']}?op=op_form&menu_type={$menu_type}&menu_ofsn={$menu_sn}'><img src='".XOOPS_URL."/modules/{$DIRNAME}/images/i_new_cate.gif' title='".sprintf(_MD_UGMPAGE_MENU_ADD_SUB,$menu_title)."'></a>":"";//是否可以新增
+        $create_sub=($chk_level<$stop_level-1)?"<a href='{$_SERVER['PHP_SELF']}?op=op_form&menu_type={$menu_type}&menu_ofsn={$menu_sn}'><i title='".sprintf(_MD_UGMPAGE_MENU_ADD_SUB,$menu_title)."' class='fa fa-plus-square' aria-hidden='true'></i></a>":"";//是否可以新增
         if($chk_level==0){
           #第一層
 					$menu_new="";
@@ -871,7 +669,7 @@ function get_list_body($menu_type=0,$menu_ofsn=0,$menu_sn=0,$stop_level=1,$level
 
       case "2": //圖片輪撥(2層)
         $chk_level=chk_level($menu_sn);
-        $create_sub=($chk_level<$stop_level-1)?"<a href='{$_SERVER['PHP_SELF']}?op=op_form&menu_type={$menu_type}&menu_ofsn={$menu_sn}'><img src='".XOOPS_URL."/modules/{$DIRNAME}/images/i_new_cate.gif' title='".sprintf(_MD_UGMPAGE_MENU_ADD_SUB,$menu_title)."'></a>":"";//是否可以新增
+        $create_sub=($chk_level<$stop_level-1)?"<a href='{$_SERVER['PHP_SELF']}?op=op_form&menu_type={$menu_type}&menu_ofsn={$menu_sn}'><i title='".sprintf(_MD_UGMPAGE_MENU_ADD_SUB,$menu_title)."' class='fa fa-plus-square' aria-hidden='true'></i></a>":"";//是否可以新增
         if($chk_level==0){
           #第一層
 					$menu_new="";
@@ -897,7 +695,7 @@ function get_list_body($menu_type=0,$menu_ofsn=0,$menu_sn=0,$stop_level=1,$level
 
       case "3": //跑馬燈(2層)
         $chk_level=chk_level($menu_sn);
-        $create_sub=($chk_level<$stop_level-1)?"<a href='{$_SERVER['PHP_SELF']}?op=op_form&menu_type={$menu_type}&menu_ofsn={$menu_sn}'><img src='".XOOPS_URL."/modules/{$DIRNAME}/images/i_new_cate.gif' title='".sprintf(_MD_UGMPAGE_MENU_ADD_SUB,$menu_title)."'></a>":"";//是否可以新增
+        $create_sub=($chk_level<$stop_level-1)?"<a href='{$_SERVER['PHP_SELF']}?op=op_form&menu_type={$menu_type}&menu_ofsn={$menu_sn}'><i title='".sprintf(_MD_UGMPAGE_MENU_ADD_SUB,$menu_title)."' class='fa fa-plus-square' aria-hidden='true'></i></a>":"";//是否可以新增
         if($chk_level==0){
           #第一層
 					$menu_new="";
@@ -923,7 +721,7 @@ function get_list_body($menu_type=0,$menu_ofsn=0,$menu_sn=0,$stop_level=1,$level
 
       case "4": //下拉選單(4層)
         $chk_level=chk_level($menu_sn);
-        $create_sub=($chk_level<$stop_level-1)?"<a href='{$_SERVER['PHP_SELF']}?op=op_form&menu_type={$menu_type}&menu_ofsn={$menu_sn}'><img src='".XOOPS_URL."/modules/{$DIRNAME}/images/i_new_cate.gif' title='".sprintf(_MD_UGMPAGE_MENU_ADD_SUB,$menu_title)."'></a>":"";//是否可以新增
+        $create_sub=($chk_level<$stop_level-1)?"<a href='{$_SERVER['PHP_SELF']}?op=op_form&menu_type={$menu_type}&menu_ofsn={$menu_sn}'><i title='".sprintf(_MD_UGMPAGE_MENU_ADD_SUB,$menu_title)."' class='fa fa-plus-square' aria-hidden='true'></i></a>":"";//是否可以新增
         if($chk_level==0){
           #第一層
 					$menu_new="";
@@ -949,7 +747,7 @@ function get_list_body($menu_type=0,$menu_ofsn=0,$menu_sn=0,$stop_level=1,$level
 
       case "5": //單層選單(2層)
         $chk_level=chk_level($menu_sn);
-        $create_sub=($chk_level<$stop_level-1)?"<a href='{$_SERVER['PHP_SELF']}?op=op_form&menu_type={$menu_type}&menu_ofsn={$menu_sn}'><img src='".XOOPS_URL."/modules/{$DIRNAME}/images/i_new_cate.gif' title='".sprintf(_MD_UGMPAGE_MENU_ADD_SUB,$menu_title)."'></a>":"";//是否可以新增
+        $create_sub=($chk_level<$stop_level-1)?"<a href='{$_SERVER['PHP_SELF']}?op=op_form&menu_type={$menu_type}&menu_ofsn={$menu_sn}'><i title='".sprintf(_MD_UGMPAGE_MENU_ADD_SUB,$menu_title)."' class='fa fa-plus-square' aria-hidden='true'></i></a>":"";//是否可以新增
         if($chk_level==0){
           #第一層
 					$menu_new="";
@@ -1001,41 +799,42 @@ function op_insert($menu_type=0,$menu_ofsn=0,$menu_sn=0){
   $menu_sort=intval($_POST['menu_sort']);
   /****************************************************************/
   switch($menu_type){
-  case "5"://單層選單
-	case "1"://伸縮選單
-	  if($menu_ofsn==0){
-      //--------------------   類別 --------------------------------------------------
+    case "6"://樹狀選單
+    case "5"://單層選單
+    case "1"://伸縮選單
+      if($menu_ofsn==0){
+        //--------------------   類別 --------------------------------------------------
+        if($menu_sn==0){
+          //新增
+          $sql = "insert into ".$xoopsDB->prefix(_DB_MENU_TABLE)."(`menu_type`,`menu_ofsn`,`menu_sort`,`menu_date`,`menu_title`,`menu_enable`,`menu_uid`) values ('{$menu_type}','{$menu_ofsn}','{$menu_sort}','{$menu_date}','{$menu_title}','{$menu_enable}','{$menu_uid}')";
+        }else{
+          //編輯
+          $sql = "update ".$xoopsDB->prefix(_DB_MENU_TABLE)." set  `menu_title` = '{$menu_title}', `menu_enable` = '{$menu_enable}', `menu_sort` = '{$menu_sort}', `menu_uid` = '{$menu_uid}', `menu_date` = '{$menu_date}' where `menu_sn`='{$menu_sn}'";
+        }
+      }else{
+      //-------------------   選單   ---------------------------------------------------
+      /***************************** 過瀘資料 *************************/
+      $menu_tip=SqlFilter($_POST['menu_tip'],"trim,addslashes,strip_tags");
+      $menu_new=intval($_POST['menu_new']);
+      $menu_url=SqlFilter($_POST['menu_url'],"trim,addslashes");
+      /****************************************************************/
       if($menu_sn==0){
         //新增
-        $sql = "insert into ".$xoopsDB->prefix(_DB_MENU_TABLE)."(`menu_type`,`menu_ofsn`,`menu_sort`,`menu_date`,`menu_title`,`menu_enable`,`menu_uid`) values ('{$menu_type}','{$menu_ofsn}','{$menu_sort}','{$menu_date}','{$menu_title}','{$menu_enable}','{$menu_uid}')";
-			}else{
+        $sql = "insert into ".$xoopsDB->prefix(_DB_MENU_TABLE)."(`menu_type`,`menu_ofsn`,`menu_sort`,`menu_date`,`menu_title`,`menu_enable`,`menu_uid`,`menu_tip`,`menu_new`,`menu_url`) values ('{$menu_type}','{$menu_ofsn}','{$menu_sort}','{$menu_date}','{$menu_title}','{$menu_enable}','{$menu_uid}','{$menu_tip}','{$menu_new}','{$menu_url}')";
+      }else{
         //編輯
-        $sql = "update ".$xoopsDB->prefix(_DB_MENU_TABLE)." set  `menu_title` = '{$menu_title}', `menu_enable` = '{$menu_enable}', `menu_sort` = '{$menu_sort}', `menu_uid` = '{$menu_uid}', `menu_date` = '{$menu_date}' where `menu_sn`='{$menu_sn}'";
+        $sql = "update ".$xoopsDB->prefix(_DB_MENU_TABLE)." set  `menu_title` = '{$menu_title}', `menu_enable` = '{$menu_enable}', `menu_sort` = '{$menu_sort}', `menu_uid` = '{$menu_uid}', `menu_date` = '{$menu_date}', `menu_tip` = '{$menu_tip}', `menu_new` = '{$menu_new}', `menu_url` = '{$menu_url}' where `menu_sn`='{$menu_sn}'";
+        }
       }
-    }else{
-     //-------------------   選單   ---------------------------------------------------
-     /***************************** 過瀘資料 *************************/
-     $menu_tip=SqlFilter($_POST['menu_tip'],"trim,addslashes,strip_tags");
-     $menu_new=intval($_POST['menu_new']);
-     $menu_url=SqlFilter($_POST['menu_url'],"trim,addslashes");
-     /****************************************************************/
-     if($menu_sn==0){
-       //新增
-       $sql = "insert into ".$xoopsDB->prefix(_DB_MENU_TABLE)."(`menu_type`,`menu_ofsn`,`menu_sort`,`menu_date`,`menu_title`,`menu_enable`,`menu_uid`,`menu_tip`,`menu_new`,`menu_url`) values ('{$menu_type}','{$menu_ofsn}','{$menu_sort}','{$menu_date}','{$menu_title}','{$menu_enable}','{$menu_uid}','{$menu_tip}','{$menu_new}','{$menu_url}')";
-		 }else{
-       //編輯
-       $sql = "update ".$xoopsDB->prefix(_DB_MENU_TABLE)." set  `menu_title` = '{$menu_title}', `menu_enable` = '{$menu_enable}', `menu_sort` = '{$menu_sort}', `menu_uid` = '{$menu_uid}', `menu_date` = '{$menu_date}', `menu_tip` = '{$menu_tip}', `menu_new` = '{$menu_new}', `menu_url` = '{$menu_url}' where `menu_sn`='{$menu_sn}'";
+      $xoopsDB->queryF($sql) or redirect_header($_SERVER['PHP_SELF'],3, web_error());
+      if($menu_sn==0 and $menu_ofsn==0){
+        //取得最後新增資料的流水編號(新增)
+        $menu_sn=$xoopsDB->getInsertId();
+      }else{
+        $menu_sn=$menu_ofsn;
       }
-    }
-    $xoopsDB->queryF($sql) or redirect_header($_SERVER['PHP_SELF'],3, web_error());
-    if($menu_sn==0 and $menu_ofsn==0){
-  		//取得最後新增資料的流水編號(新增)
-  		$menu_sn=$xoopsDB->getInsertId();
-  	}else{
-      $menu_sn=$menu_ofsn;
-    }
-    return $menu_sn;
-	break;
+      return $menu_sn;
+    break;
 
 	case "2"://圖片輪播
 	  if($menu_ofsn==0){

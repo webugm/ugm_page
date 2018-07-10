@@ -23,6 +23,8 @@ define("_MB_UGMPAGE_B_MENU_T1_OP1","列出選單數");
 define("_MB_UGMPAGE_B_MENU_T1_OP1_R","「0」為不限制");
 define("_MB_UGMPAGE_B_MENU_T1_OP4","選擇伸縮選單分類");
 
+//ugm_page_b_tree_menu
+define("_MB_UGMPAGE_B_TREE_MENU_OP1","選擇樹狀選單分類");
 //--------------- ugm_page_coin_slider ------------------------------------
 define("_MB_UGMPAGE_COIN_SLIDER_HEIGHT","高度");
 define("_MB_UGMPAGE_COIN_SLIDER_SORT_M","排序方式"); 
@@ -52,11 +54,3 @@ define("_MB_UGMPAGE_B_FONTSIZE","字型大小");
 define("_MB_UGMPAGE_B_CORLOR","字型顏色");
 define("_MB_UGMPAGE_B_HOVE_CORLOR","滑過顏色");
 define("_MB_UGMPAGE_B_BACKGROUND_CORLOR","背景顏色");
-
-
- 
-
-
-
-
-?>
