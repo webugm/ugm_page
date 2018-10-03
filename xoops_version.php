@@ -3,7 +3,7 @@ $modversion = array();
 
 //---模組基本資訊---//
 $modversion['name'] = _MI_UGMPAGE_NAME;
-$modversion['version'] = '3.01';
+$modversion['version'] = '3.02';
 $modversion['description'] = _MI_UGMPAGE_DESC;
 $modversion['author'] = _MI_UGMPAGE_AUTHOR;
 $modversion['credits'] = _MI_UGMPAGE_CREDITS;
@@ -15,8 +15,8 @@ $modversion['dirname'] = basename(dirname(__FILE__));
 
 
 //---模組狀態資訊---//
-$modversion['status_version'] = '3.01';
-$modversion['release_date'] = '2018-07-05';
+$modversion['status_version'] = '3.02';
+$modversion['release_date'] = '2018-10-03';
 $modversion['module_website_url'] = 'http://www.ugm.com.tw/';
 $modversion['module_website_name'] = 'UGM';
 $modversion['module_status'] = 'release';

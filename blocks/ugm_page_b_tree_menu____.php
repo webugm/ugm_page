@@ -17,49 +17,24 @@ function ugm_page_b_tree_menu($options){
           where `menu_sn`={$options[1]}";//die($sql);
   $result = $xoopsDB->query($sql) or redirect_header($_SERVER['PHP_SELF'],3, web_error($sql));
   $row=$xoopsDB->fetchArray($result);
+  $block['title'] = $myts->htmlSpecialChars($row['menu_title']);
 
-  $home['title'] = $myts->htmlSpecialChars($row['menu_title']); 
-  $home['sn']    = 0;
-  $home['url']   = "";
+  $sql = "select *  from ".$xoopsDB->prefix("ugm_page_menu")." where `menu_enable`=1 and `menu_type`=6 and `menu_ofsn`={$options[1]} order by `menu_sort`";//die($sql);
 
-
-  $sql = "select menu_sn,menu_title,menu_url  
-          from ".$xoopsDB->prefix("ugm_page_menu")." 
-          where  `menu_type`=6 and `menu_enable`=1 and`menu_ofsn`={$options[1]} 
-          order by `menu_sort`";//die($sql);
-
-  $result = $xoopsDB->query($sql) or web_error($sql);
-  $title=$ofsn=$url=array();
+  $result = $xoopsDB->query($sql) or redirect_header($_SERVER['PHP_SELF'],3, web_error($sql));
+  $rows=array();
 	while($row=$xoopsDB->fetchArray($result)){
     $row['menu_sn'] = intval($row['menu_sn']); 
-    $ofsn[$row['menu_sn']] = 0;   
-    $title[$row['menu_sn']] = $myts->htmlSpecialChars($row['menu_title']);
-    $url[$row['menu_sn']] = $row['menu_url'] ? $myts->htmlSpecialChars($row['menu_url']):"#";
-
-    $sql_1 = "select menu_sn,menu_title,menu_url,menu_ofsn 
-            from ".$xoopsDB->prefix("ugm_page_menu")." 
-            where `menu_type`='6' and `menu_enable`='1' and `menu_ofsn`='{$row['menu_sn']}' 
-            order by `menu_sort` ";
-    $result_1 = $xoopsDB->query($sql_1) or web_error($sql_1);
-    
-    while($row_1=$xoopsDB->fetchArray($result_1)){
-      $row_1['menu_sn'] = intval($row_1['menu_sn']); 
-      $ofsn[$row_1['menu_sn']] = intval($row_1['menu_ofsn']);   
-      $title[$row_1['menu_sn']] = $myts->htmlSpecialChars($row_1['menu_title']);
-      $url[$row_1['menu_sn']] = $row_1['menu_url'] ? $myts->htmlSpecialChars($row_1['menu_url']):"#"; 
-    }
+    $row['menu_ofsn'] = 0;   
+    $row['menu_title'] = $myts->htmlSpecialChars($row['menu_title']);
+    $row['menu_new'] = intval($row['menu_new']);  
+    $row['menu_url'] = $row['menu_url'] ? $myts->htmlSpecialChars($row['menu_url']):"#";
+	  //以下會產生這些變數： ``, `menu_type`, `menu_ofsn`, `menu_sort`, `menu_title`, `menu_op`, `menu_tip`, `menu_enable`, `menu_new`, `menu_url`, `menu_date`, `menu_uid`
+    $row['sub']=get_tree_menu_down($row['menu_sn']);
+    $rows[] = $row;
   }
-
-
-  if (!file_exists(XOOPS_ROOT_PATH . "/modules/ugm_tools2/dtree.php")) {
-      redirect_header("index.php", 3, _MA_NEED_TADTOOLS);
-  }
-  include_once XOOPS_ROOT_PATH . "/modules/ugm_tools2/dtree.php";
-  
-  $dtree         = new dtree("ugm_page_{$options[0]}", $home, $title, $ofsn, $url);
-  $block['main'] = $dtree->render();
-
   $block['options'] = $options;
+  $block['rows'] = $rows;
 	return $block;
 }
 //".chk($options[2],"shadow",0,"selected")."
